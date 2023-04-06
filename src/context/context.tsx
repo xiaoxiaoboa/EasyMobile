@@ -1,10 +1,9 @@
 import React from 'react'
 import reducer from './reducer'
 import {createContextType, ReducerState} from '../types/reducer'
-import { Animated } from 'react-native'
 
 const initialValue: ReducerState = {
-  homeOffset: new Animated.Value(0),
+  test: false,
 }
 
 export const MyContext = React.createContext<createContextType>({

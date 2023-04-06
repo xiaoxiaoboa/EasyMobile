@@ -1,11 +1,9 @@
 import {Light, Dark} from './theme-types'
 
-interface MyTheme {
+const MyColors: {
   light: Light
   dark: Dark
-}
-
-const MyTheme: MyTheme = {
+} = {
   light: {
     isDark: false,
     primary: '#1A73E3',
@@ -17,6 +15,8 @@ const MyTheme: MyTheme = {
     defaultTextColor: 'black',
     homebg: '#dcdcdc',
     messagebg: '#f1f2f6',
+    inputbg: '#f1f2f6',
+    clickbg: '#ececed',
   },
   dark: {
     isDark: true,
@@ -29,7 +29,9 @@ const MyTheme: MyTheme = {
     defaultTextColor: 'white',
     homebg: '#313131',
     messagebg: '#343537',
+    inputbg: '#3a3b3d',
+    clickbg: '#4d4d51',
   },
 }
 
-export default MyTheme
+export default MyColors

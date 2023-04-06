@@ -3,6 +3,7 @@ import {StatusBar, View, StyleSheet, Animated} from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {ThemeContext} from '../theme'
 import Routes from '../routes'
+import MyModal from '../components/MyModal/MyModal'
 
 const AppWrapper = () => {
   const {theme} = React.useContext(ThemeContext)
@@ -10,8 +11,8 @@ const AppWrapper = () => {
     <View style={{flex: 1}}>
       <SafeAreaView style={{flex: 1}}>
         <StatusBar
-          barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-          backgroundColor={theme.background}
+          barStyle={theme.colors.isDark ? 'light-content' : 'dark-content'}
+          backgroundColor={theme.colors.background}
         />
 
         {/* root router */}

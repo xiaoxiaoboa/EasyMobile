@@ -10,12 +10,12 @@ const Logo = () => {
   return (
     <View style={styles.logoContainer}>
       <View style={styles.logoWrapper}>
-        {theme.isDark ? <LogoDark /> : <LogoLight />}
+        {theme.colors.isDark ? <LogoDark /> : <LogoLight />}
       </View>
-      <View style={[styles.search, {backgroundColor: theme.topsearchbg}]}>
+      <View style={[styles.search, {backgroundColor: theme.colors.topsearchbg}]}>
         <Icons
           name="search"
-          color={theme.topsearch}
+          color={theme.colors.topsearch}
           size={21}
         />
       </View>

@@ -4,7 +4,7 @@ import {ThemeContext} from '../../theme'
 
 const Divider = () => {
   const {theme} = React.useContext(ThemeContext)
-  return <View style={[styles.container, {backgroundColor: theme.divider}]}></View>
+  return <View style={[styles.container, {backgroundColor: theme.colors.divider}]}></View>
 }
 
 export default Divider

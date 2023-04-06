@@ -6,12 +6,14 @@ import type {NativeStackScreenProps} from '@react-navigation/native-stack'
 import FeedCard from '../components/FeedCard/FeedCard'
 import 'react-native-get-random-values'
 import {nanoid} from 'nanoid'
-import {MyContext} from '../context/context'
-import {ActionTypes} from '../types/reducer'
-import Swiper from '../components/Swiper/Swiper'
+import MyModal from '../components/MyModal/MyModal'
+import Postting from './Postting'
+import { Colors} from '../theme/theme-types'
+import {useNavigation, NavigationProp} from '@react-navigation/native'
+import {RootStackParamList} from '../types/route'
 
 type imagesType = {id: string; uri: string}
-const images: imagesType[] = [
+export const images: imagesType[] = [
   {
     id: nanoid(),
     uri: 'https://images.pexels.com/photos/4041122/pexels-photo-4041122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
@@ -34,19 +36,47 @@ const images: imagesType[] = [
   // },
 ]
 
-export const data = [images, images, images, images, images, images, images, images, images]
-
-type Props = NativeStackScreenProps<any, 'home'>
-const Home = ({navigation}: Props) => {
+const Home = () => {
   const {theme, toggleTheme} = React.useContext(ThemeContext)
-  const [swiperVisible, setSwiperVisible] = React.useState<boolean>(false)
-  const targetIndexRef = React.useRef<any>()
-  const sourceRef = React.useRef<any[]>([])
 
-  const HeaderComponent = React.useMemo(() => {
-    return (
+  return (
+    <View style={[styles.container, {backgroundColor: theme.colors.homebg}]}>
+      <View style={{flex: 1, paddingTop: 100}}>
+        <FlatList
+          data={Array(1000)
+            .fill(0)
+            .map(() => images)}
+          initialNumToRender={3}
+          ListHeaderComponent={() => <HeaderComponent theme={theme.colors} />}
+          showsVerticalScrollIndicator={false}
+          renderItem={({item, index}) => (
+            <FeedCard
+              key={index}
+              images={item}
+              index={index}
+            />
+          )}
+        />
+      </View>
+    </View>
+  )
+}
+interface HeaderComponentProps {
+  theme: Colors
+}
+const HeaderComponent = (props: HeaderComponentProps) => {
+  const {theme} = props
+  const [modalVisible, setModalVisible] = React.useState<boolean>(false)
+  const navigate = useNavigation<NavigationProp<RootStackParamList>>()
+
+  const handleModalVisible = React.useCallback((visible: boolean) => {
+    setModalVisible(visible)
+  }, [])
+
+  return (
+    <View>
       <View style={[styles.homeTop, {backgroundColor: theme.background}]}>
-        <Avatar size={40} />
+        <Avatar src={undefined} size={40} />
         <View style={[styles.postting, {borderColor: theme.secondary}]}>
           <Pressable
             style={[styles.topbtn]}
@@ -55,46 +85,15 @@ const Home = ({navigation}: Props) => {
               borderless: false,
               foreground: true,
             }}
-            onPress={() => navigation.navigate('postting')}>
+            onPress={() => navigate.navigate('postting')}>
             <Text style={{color: theme.secondary}}>分享好瞬间~</Text>
           </Pressable>
         </View>
       </View>
-    )
-  }, [theme])
-
-  const handleOpenSwiper = React.useCallback((targetIndex: any, source: any[]) => {
-    targetIndexRef.current = targetIndex
-    sourceRef.current = source
-    setSwiperVisible(p => !p)
-  }, [])
-
-  return (
-    <View style={[styles.container, {backgroundColor: theme.homebg}]}>
-      <View style={{flex: 1, paddingTop: 100}}>
-        <FlatList
-          data={data}
-          initialNumToRender={30}
-          ListHeaderComponent={HeaderComponent}
-          showsVerticalScrollIndicator={false}
-          renderItem={({item, index}) => (
-            <FeedCard
-              key={index}
-              images={item}
-              handleOpenSwiper={handleOpenSwiper}
-            />
-          )}
-        />
-      </View>
-      <Swiper
-        source={sourceRef.current}
-        targetIndex={targetIndexRef.current}
-        visible={swiperVisible}
-        setVisible={setSwiperVisible}
-      />
     </View>
   )
 }
+
 export default Home
 
 const styles = StyleSheet.create({

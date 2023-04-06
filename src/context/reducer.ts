@@ -4,9 +4,8 @@ import actions from './actions'
 const reducer = (state: ReducerState, action: ActionsType) => {
   const {type, payload} = action
   switch (type) {
-    case ActionTypes.HOMEOFFSET:
-      return actions.homeOffset(state, payload)
-
+    case ActionTypes.TEST:
+      return state
     default:
       return state
   }

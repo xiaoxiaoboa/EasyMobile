@@ -29,16 +29,21 @@ const ModalTop: React.FC<ModalTop> = props => {
     <View style={[styles.top]}>
       <View style={[styles.flex, styles.backBtn]}>
         <Pressable
-          style={{padding: 6}}
-          android_ripple={{color: theme.divider, radius: 20, borderless: false}}
+          style={{padding: 6, borderRadius: 50, overflow: 'hidden'}}
+          android_ripple={{
+            color: theme.colors.clickbg,
+            borderless: false,
+            foreground: true,
+          }}
           onPress={onClose}>
           <FIcons
             name="arrow-left"
             size={30}
-            color={theme.isDark ? '#FFFFFF' : '#000000'}
+            color={theme.colors.isDark ? '#FFFFFF' : '#000000'}
           />
         </Pressable>
-        <Text style={[styles.topText, {color: theme.isDark ? '#FFFFFF' : '#000000'}]}>
+        <Text
+          style={[styles.topText, {color: theme.colors.isDark ? '#FFFFFF' : '#000000'}]}>
           {name}
         </Text>
       </View>
@@ -48,7 +53,7 @@ const ModalTop: React.FC<ModalTop> = props => {
         style={[
           styles.submit,
           {
-            backgroundColor: btnDisabled ? theme.divider : theme.primary,
+            backgroundColor: btnDisabled ? theme.colors.divider : theme.colors.primary,
             display: isBtnDisplay ? 'flex' : 'none',
           },
         ]}>
@@ -73,7 +78,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
     paddingHorizontal: 10,
-    paddingTop: 10,
   },
   topText: {
     fontSize: 20,

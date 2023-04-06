@@ -37,11 +37,8 @@ const Chat = () => {
   return (
     <View
       style={[styles.container, {backgroundColor: 'lightgray', paddingHorizontal: 10}]}>
-      <Text style={[{color: theme.primary}]}>Settings!!!</Text>
-      <Button
-        title="点我点我点我"
-        onPress={toggleTheme}
-      />
+      <Text style={[{color: theme.colors.primary}]}>Settings!!!</Text>
+      <Button title="点我点我点我" />
       <FlatList
         data={texts}
         numColumns={2}

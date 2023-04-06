@@ -1,5 +1,6 @@
 export type RootStackParamList = {
   root: undefined
   postting: undefined
-  commentModal: any
+  comment: undefined
+  profile_drawer: undefined
 }

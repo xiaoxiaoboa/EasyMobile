@@ -9,6 +9,8 @@ import MyTabBar from './MyTabBar'
 import Logo from '../Logo/Logo'
 import Divider from '../Divider/Divider'
 import Profile from '../../screens/Profile'
+import Friends from '../../screens/Friends'
+
 
 const TopTabs = () => {
   const {Navigator, Screen} = createMaterialTopTabNavigator()
@@ -32,7 +34,7 @@ const TopTabs = () => {
             style={[
               styles.tabBar,
               {
-                backgroundColor: theme.background,
+                backgroundColor: theme.colors.background,
                 transform: [{translateY}],
               },
             ]}>
@@ -54,7 +56,7 @@ const TopTabs = () => {
         />
         <Screen
           name="friends"
-          component={Chat}
+          component={Friends}
         />
         <Screen
           name="profile"

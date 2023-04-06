@@ -1,10 +1,16 @@
 export interface ThemeContextType {
   theme: Theme
-  toggleTheme: () => void
+  toggleTheme: (mode: 'auto' | 'dark' | 'light') => void
 }
 
+
 export interface Theme {
+  mode: 'auto' | 'dark' | 'light'
+  colors: Colors
+}
+export interface Colors {
   isDark: boolean
+
   primary: string
   secondary: string
   background: string
@@ -14,7 +20,9 @@ export interface Theme {
   defaultTextColor: string
   homebg: string
   messagebg: string
+  inputbg: string
+  clickbg: string
 }
 
-export type Light = Theme
-export type Dark = Theme
+export type Light = Colors
+export type Dark = Colors

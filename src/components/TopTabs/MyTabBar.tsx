@@ -67,7 +67,7 @@ const MyTabBar = (props: MyTabBarProps) => {
           return (
             <Icons
               name={iconName}
-              color={isFocused ? '#1A73E3' : theme.secondary}
+              color={isFocused ? '#1A73E3' : theme.colors.secondary}
               size={26}
             />
           )

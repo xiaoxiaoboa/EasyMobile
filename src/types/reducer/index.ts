@@ -1,4 +1,5 @@
-import { Animated } from "react-native"
+import {Animated} from 'react-native'
+import {GlobalModalType} from '..'
 
 export interface createContextType {
   state: ReducerState
@@ -6,11 +7,11 @@ export interface createContextType {
 }
 
 export interface ReducerState {
-  homeOffset: Animated.Value
+  test: boolean
 }
 
 export enum ActionTypes {
-  HOMEOFFSET = 'homeOffset',
+  TEST = 'test',
 }
 
 export type ActionMap<M extends {[index: string]: any}> = {
@@ -25,7 +26,7 @@ export type ActionMap<M extends {[index: string]: any}> = {
 }
 
 export interface ReducerPaylodType {
-  [ActionTypes.HOMEOFFSET]: Animated.Value
+  [ActionTypes.TEST]: boolean
 }
 
 export type ActionsType = ActionMap<ReducerPaylodType>[keyof ActionMap<ReducerPaylodType>]

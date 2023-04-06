@@ -7,6 +7,7 @@ interface MessageProps {}
 const Message = () => {
   const {theme} = React.useContext(ThemeContext)
   const windowWidth = React.useMemo(() => Dimensions.get('window').width, [])
+
   return (
     <View style={[styles.container]}>
       <View>
@@ -16,15 +17,15 @@ const Message = () => {
         />
       </View>
       <View style={[styles.message_wrapper]}>
-        <View style={[styles.message, {backgroundColor: theme.messagebg}]}>
-          <Text style={[styles.name, {color: theme.defaultTextColor}]}>小新</Text>
-          <Text style={[{color: theme.defaultTextColor}]}>
+        <View style={[styles.message, {backgroundColor: theme.colors.messagebg}]}>
+          <Text style={[styles.name, {color: theme.colors.defaultTextColor}]}>小新</Text>
+          <Text style={[{color: theme.colors.defaultTextColor}]}>
             Lorem ipsum, dolor sit amet consectetur adipisicing elit. Esse temporibus
             cupiditate vitae hic placeat. Architecto quod neque dolorem cupiditate
             molestiae amet. Id deserunt suscipit quam esse iure quidem, quod magnam?
           </Text>
         </View>
-        <Text style={[styles.timestamp, {color: theme.secondary}]}>1天前</Text>
+        <Text style={[styles.timestamp, {color: theme.colors.secondary}]}>1天前</Text>
       </View>
     </View>
   )
