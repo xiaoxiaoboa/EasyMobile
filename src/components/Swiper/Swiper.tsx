@@ -1,9 +1,11 @@
 import React from 'react'
 import {Modal, View, Image, FlatList, Text, Dimensions} from 'react-native'
+import {Feed_attachType} from '../../types/feed.type'
+import getUnionUrl from '../../utils/getUnionUrl'
 
 interface SwiperProps {
-  targetIndex: any
-  source: any[]
+  targetIndex: number
+  source: Feed_attachType[]
   visible: boolean
   setVisible: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -38,7 +40,7 @@ const Swiper: React.FC<SwiperProps> = props => {
           })}
           renderItem={({index, item, separators}) => (
             <Image
-              source={{uri: item.uri}}
+              source={{uri: getUnionUrl(item.attach_link)}}
               style={{width: windowWidth}}
               resizeMode="contain"
             />

@@ -6,13 +6,15 @@ import type {NativeStackScreenProps} from '@react-navigation/native-stack'
 import FeedCard from '../components/FeedCard/FeedCard'
 import 'react-native-get-random-values'
 import {nanoid} from 'nanoid'
-import MyModal from '../components/MyModal/MyModal'
-import Postting from './Postting'
-import { Colors} from '../theme/theme-types'
+import {Colors} from '../theme/theme-types'
 import {useNavigation, NavigationProp} from '@react-navigation/native'
 import {RootStackParamList} from '../types/route'
+import {MyContext} from '../context/context'
+import getUnionUrl from '../utils/getUnionUrl'
+import {feeds_all} from '../api/feed.api'
+import {ActionTypes} from '../types/reducer'
 
-type imagesType = {id: string; uri: string}
+export type imagesType = {id: string; uri: string}
 export const images: imagesType[] = [
   {
     id: nanoid(),
@@ -37,25 +39,34 @@ export const images: imagesType[] = [
 ]
 
 const Home = () => {
-  const {theme, toggleTheme} = React.useContext(ThemeContext)
+  const {theme} = React.useContext(ThemeContext)
+  const {state, dispatch} = React.useContext(MyContext)
+  const limitRef = React.useRef<number>(5)
+  const offsetRef = React.useRef<number>(0)
+
+  /* 获取帖子 */
+  const getFeeds = () => {
+    feeds_all(limitRef.current, offsetRef.current).then(val => {
+      if (val.code === 1) {
+        dispatch({type: ActionTypes.GETHOMEFEEDS, payload: val.data})
+        offsetRef.current += limitRef.current
+      }
+    })
+  }
 
   return (
     <View style={[styles.container, {backgroundColor: theme.colors.homebg}]}>
       <View style={{flex: 1, paddingTop: 100}}>
         <FlatList
-          data={Array(1000)
-            .fill(0)
-            .map(() => images)}
+          data={state.homeFeeds}
           initialNumToRender={3}
+          maxToRenderPerBatch={3}
+          onEndReachedThreshold={0.3}
+          onEndReached={getFeeds}
           ListHeaderComponent={() => <HeaderComponent theme={theme.colors} />}
           showsVerticalScrollIndicator={false}
-          renderItem={({item, index}) => (
-            <FeedCard
-              key={index}
-              images={item}
-              index={index}
-            />
-          )}
+          renderItem={({item, index}) => <FeedCard feed={item} />}
+          keyExtractor={({feed_id}) => feed_id}
         />
       </View>
     </View>
@@ -65,18 +76,44 @@ interface HeaderComponentProps {
   theme: Colors
 }
 const HeaderComponent = (props: HeaderComponentProps) => {
+  const {state} = React.useContext(MyContext)
   const {theme} = props
-  const [modalVisible, setModalVisible] = React.useState<boolean>(false)
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
-
-  const handleModalVisible = React.useCallback((visible: boolean) => {
-    setModalVisible(visible)
-  }, [])
 
   return (
     <View>
+      {!state.user && (
+        <View
+          style={[
+            styles.nologin,
+            {
+              backgroundColor: theme.background,
+            },
+          ]}>
+          <Pressable
+            onPress={() => navigate.navigate('login')}
+            style={({pressed}) => [
+              styles.nologin_btns,
+              {backgroundColor: theme.primary, transform: [{scale: pressed ? 0.97 : 1}]},
+            ]}>
+            <Text style={[styles.nologin_btns_text]}>登录</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => navigate.navigate('register')}
+            style={({pressed}) => [
+              styles.nologin_btns,
+              {backgroundColor: '#36a420', transform: [{scale: pressed ? 0.97 : 1}]},
+            ]}>
+            <Text style={[styles.nologin_btns_text]}>注册</Text>
+          </Pressable>
+        </View>
+      )}
+
       <View style={[styles.homeTop, {backgroundColor: theme.background}]}>
-        <Avatar src={undefined} size={40} />
+        <Avatar
+          src={getUnionUrl(state.user?.result.avatar)}
+          size={40}
+        />
         <View style={[styles.postting, {borderColor: theme.secondary}]}>
           <Pressable
             style={[styles.topbtn]}
@@ -124,5 +161,22 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     borderWidth: 1,
     justifyContent: 'center',
+  },
+
+  nologin: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+    paddingVertical: 10,
+  },
+  nologin_btns: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  nologin_btns_text: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
 })

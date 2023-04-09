@@ -8,7 +8,7 @@ import {
   ListRenderItemInfo,
 } from 'react-native'
 import {ThemeContext} from '../theme'
-import MyInput from '../components/SearchInput/MyInput'
+import MyInput from '../components/MyInput/MyInput'
 import Avatar from '../components/Avatar/Avatar'
 import MIcons from 'react-native-vector-icons/MaterialIcons'
 import Divider from '../components/Divider/Divider'
@@ -17,9 +17,28 @@ import {Colors} from '../theme/theme-types'
 import Icons from 'react-native-vector-icons/Ionicons'
 import Acons from 'react-native-vector-icons/AntDesign'
 import {useNavigation} from '@react-navigation/native'
+import {getFriends} from '../api/user.api'
+import {MyContext} from '../context/context'
+import {ActionTypes} from '../types/reducer'
+import myToast from '../utils/Toast'
+import {FriendType} from '../types/friend.type'
+import getUnionUrl from '../utils/getUnionUrl'
+import getTimeDiff from '../utils/getTimeDiff'
 
 const Friends = () => {
   const {theme} = React.useContext(ThemeContext)
+  const {state, dispatch} = React.useContext(MyContext)
+
+  React.useEffect(() => {
+    getFriends(state.user?.result.user_id!, state.user?.token!).then(val => {
+      if (val.code === 1) {
+        dispatch({type: ActionTypes.FRIENDS, payload: val.data})
+      } else {
+        myToast(val.message)
+      }
+    })
+  }, [])
+
   return (
     <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
       {/* 顶部 */}
@@ -28,7 +47,10 @@ const Friends = () => {
           <Text style={[styles.title, {color: theme.colors.defaultTextColor}]}>好友</Text>
         </View>
         <View>
-          <MyInput placeholder="搜索" />
+          <MyInput
+            placeholder="搜索"
+            paddingVertical={10}
+          />
         </View>
         <Pressable
           style={({pressed}) => [
@@ -52,18 +74,14 @@ const Friends = () => {
 
       {/* 列表 */}
       <FlatList
-        data={[
-          ...Array(1000)
-            .fill(0)
-            .map((item, index) => item + index),
-        ]}
+        data={state.friends}
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
         initialNumToRender={10}
         maxToRenderPerBatch={50}
-        renderItem={params => (
+        renderItem={({item}) => (
           <RenderItem
-            params={params}
+            friend={item}
             theme={theme.colors}
           />
         )}
@@ -74,11 +92,10 @@ const Friends = () => {
 
 interface RenderItemProps {
   theme: Colors
-  params: ListRenderItemInfo<any>
+  friend: FriendType
 }
 const RenderItem = (props: RenderItemProps) => {
-  const {params, theme} = props
-  const navigate = useNavigation()
+  const {friend, theme} = props
   const [modalVisible, setModalVisible] = React.useState<boolean>(false)
 
   const handleModalVisible = React.useCallback((visible: boolean) => {
@@ -90,11 +107,11 @@ const RenderItem = (props: RenderItemProps) => {
         style={[styles.user]}
         android_ripple={{color: theme.clickbg}}>
         <Avatar
-          src={undefined}
+          src={getUnionUrl(friend.avatar)}
           size={60}
         />
         <Text style={[styles.user_name, {color: theme.defaultTextColor}]}>
-          原小新{params.index}
+          {friend.nick_name}
         </Text>
         <Pressable
           onPress={() => handleModalVisible(true)}
@@ -118,7 +135,12 @@ const RenderItem = (props: RenderItemProps) => {
         half
         modalVisible={modalVisible}
         setModalVisible={handleModalVisible}
-        children={<ModalContent theme={theme} />}
+        children={
+          <ModalContent
+            friend={friend}
+            theme={theme}
+          />
+        }
       />
     </>
   )
@@ -126,14 +148,16 @@ const RenderItem = (props: RenderItemProps) => {
 
 interface ModalContentProps {
   theme: Colors
+  friend: FriendType
 }
 const ModalContent = React.memo((props: ModalContentProps) => {
-  const {theme} = props
+  const {theme, friend} = props
+  const dateRef = React.useRef(new Date(friend.createdAt)).current
   return (
     <View>
       <View style={[styles.options_top]}>
         <Avatar
-          src={undefined}
+          src={getUnionUrl(friend.avatar)}
           size={56}
         />
         <View>
@@ -143,9 +167,12 @@ const ModalContent = React.memo((props: ModalContentProps) => {
               fontWeight: '500',
               color: theme.defaultTextColor,
             }}>
-            原小新
+            {friend.nick_name}
           </Text>
-          <Text style={{color: theme.secondary}}>从1998年1月1日成为好友 · 25年</Text>
+          <Text style={{color: theme.secondary}}>
+            从{dateRef.getFullYear()}年{dateRef.getMonth() + 1}月{dateRef.getDate()}
+            日成为好友 · {getTimeDiff(friend.createdAt)}
+          </Text>
         </View>
       </View>
       <Divider />
@@ -159,7 +186,7 @@ const ModalContent = React.memo((props: ModalContentProps) => {
             color={theme.secondary}
           />
           <Text style={{fontSize: 18, color: theme.defaultTextColor}}>
-            发消息给<Text style={{fontWeight: '500'}}>原小新</Text>
+            发消息给<Text style={{fontWeight: '500'}}>{friend.nick_name}</Text>
           </Text>
         </Pressable>
         <Pressable
@@ -193,7 +220,6 @@ const styles = StyleSheet.create({
     paddingTop: 54,
   },
   top: {
-    gap: 10,
     paddingHorizontal: 10,
   },
   title_wrapper: {
@@ -225,6 +251,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,
+    marginBottom: 6,
   },
   options: {
     paddingTop: 10,

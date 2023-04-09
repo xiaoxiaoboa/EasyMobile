@@ -1,5 +1,7 @@
-import {Animated} from 'react-native'
-import {GlobalModalType} from '..'
+import {DataType} from '../index'
+import {FeedType} from '../feed.type'
+import {UserType} from '../user.type'
+import {FriendType} from '../friend.type'
 
 export interface createContextType {
   state: ReducerState
@@ -7,11 +9,17 @@ export interface createContextType {
 }
 
 export interface ReducerState {
-  test: boolean
+  user: DataType | undefined
+  homeFeeds: FeedType[]
+  friends: FriendType[]
 }
 
 export enum ActionTypes {
-  TEST = 'test',
+  USER = 'user',
+  GETHOMEFEEDS = 'getHomeFeeds',
+  DELFEED = 'delFeed',
+  POSTTING = 'postting',
+  FRIENDS = 'friends',
 }
 
 export type ActionMap<M extends {[index: string]: any}> = {
@@ -26,7 +34,11 @@ export type ActionMap<M extends {[index: string]: any}> = {
 }
 
 export interface ReducerPaylodType {
-  [ActionTypes.TEST]: boolean
+  [ActionTypes.USER]: DataType | undefined
+  [ActionTypes.GETHOMEFEEDS]: FeedType[]
+  [ActionTypes.DELFEED]: string
+  [ActionTypes.POSTTING]: FeedType
+  [ActionTypes.FRIENDS]: FriendType[]
 }
 
 export type ActionsType = ActionMap<ReducerPaylodType>[keyof ActionMap<ReducerPaylodType>]

@@ -2,54 +2,69 @@ import React from 'react'
 import {View, StyleSheet, Text, Dimensions} from 'react-native'
 import Avatar from '../Avatar/Avatar'
 import {ThemeContext} from '../../theme'
+import getUnionUrl from '../../utils/getUnionUrl'
+import getTimeDiff from '../../utils/getTimeDiff'
 
-interface MessageProps {}
-const Message = () => {
+interface MessageProps {
+  avatar: string
+  timestamp: string
+  text: string
+  me?: boolean
+  nick_name?: string
+}
+const Message = React.memo((props: MessageProps) => {
+  const {me, text, avatar, timestamp, nick_name} = props
   const {theme} = React.useContext(ThemeContext)
-  const windowWidth = React.useMemo(() => Dimensions.get('window').width, [])
 
   return (
-    <View style={[styles.container]}>
+    <View style={[styles.container, {flexDirection: me ? 'row-reverse' : 'row'}]}>
       <View>
         <Avatar
-          src={undefined}
+          src={getUnionUrl(avatar)}
           size={44}
         />
       </View>
       <View style={[styles.message_wrapper]}>
         <View style={[styles.message, {backgroundColor: theme.colors.messagebg}]}>
-          <Text style={[styles.name, {color: theme.colors.defaultTextColor}]}>小新</Text>
-          <Text style={[{color: theme.colors.defaultTextColor}]}>
-            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Esse temporibus
-            cupiditate vitae hic placeat. Architecto quod neque dolorem cupiditate
-            molestiae amet. Id deserunt suscipit quam esse iure quidem, quod magnam?
+          <Text
+            ellipsizeMode="tail"
+            style={[styles.name, {color: theme.colors.primary, maxWidth: '100%'}]}>
+            {nick_name}
+          </Text>
+          <Text
+            selectable
+            style={[{color: theme.colors.defaultTextColor, fontSize: 18}]}>
+            {text}
           </Text>
         </View>
-        <Text style={[styles.timestamp, {color: theme.colors.secondary}]}>1天前</Text>
+        <Text style={[styles.timestamp, {color: theme.colors.secondary}]}>
+          {getTimeDiff(timestamp)}
+        </Text>
       </View>
     </View>
   )
-}
+})
 
 export default Message
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
     overflow: 'hidden',
-    marginBottom: 10
+    marginBottom: 10,
   },
   message_wrapper: {
-    maxWidth: '86%',
+    maxWidth: '75%',
   },
   message: {
-    padding: 6,
+    paddingVertical: 6,
+    paddingRight: 10,
+    paddingLeft: 10,
     borderRadius: 10,
   },
   name: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '500',
   },
   timestamp: {

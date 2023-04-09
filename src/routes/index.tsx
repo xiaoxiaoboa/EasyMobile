@@ -5,15 +5,16 @@ import Postting from '../screens/Postting'
 import {RootStackParamList} from '../types/route'
 import Comment from '../screens/Comment'
 import {TransitionSpec} from '@react-navigation/stack/lib/typescript/src/types'
-import ProfileDrawer from '../screens/ProfileDrawer'
+import Chat from '../screens/Chat'
+import Login, {Register} from '../screens/Login'
 
 const RootStack = createStackNavigator<RootStackParamList>()
 const Routes = () => {
   const verticalConfig: TransitionSpec = {
     animation: 'spring',
     config: {
-      stiffness: 2000,
-      damping: 700,
+      stiffness: 1700,
+      damping: 200,
       mass: 5,
       overshootClamping: true,
       restDisplacementThreshold: 0.01,
@@ -23,9 +24,9 @@ const Routes = () => {
   const RightConfig: TransitionSpec = {
     animation: 'spring',
     config: {
-      stiffness: 1000,
-      damping: 500,
-      mass: 3,
+      stiffness: 1700,
+      damping: 300,
+      mass: 5,
       overshootClamping: true,
       restDisplacementThreshold: 0.01,
       restSpeedThreshold: 0.01,
@@ -40,26 +41,18 @@ const Routes = () => {
       <RootStack.Group
         screenOptions={{
           presentation: 'modal',
+          transitionSpec: {
+            open: verticalConfig,
+            close: verticalConfig,
+          },
         }}>
         <RootStack.Screen
           name="postting"
           component={Postting}
-          options={{
-            transitionSpec: {
-              open: verticalConfig,
-              close: verticalConfig,
-            },
-          }}
         />
         <RootStack.Screen
           name="comment"
           component={Comment}
-          options={{
-            transitionSpec: {
-              open: verticalConfig,
-              close: verticalConfig,
-            },
-          }}
         />
       </RootStack.Group>
 
@@ -72,8 +65,16 @@ const Routes = () => {
           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
         }}>
         <RootStack.Screen
-          name="profile_drawer"
-          component={ProfileDrawer}
+          name="chat"
+          component={Chat}
+        />
+        <RootStack.Screen
+          name="login"
+          component={Login}
+        />
+        <RootStack.Screen
+          name="register"
+          component={Register}
         />
       </RootStack.Group>
     </RootStack.Navigator>

@@ -2,7 +2,6 @@ import React from 'react'
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs'
 import {View, StyleSheet, Animated} from 'react-native'
 import Home from '../../screens/Home'
-import Chat from '../../screens/Chat'
 import {ThemeContext} from '../../theme'
 import {MyContext} from '../../context/context'
 import MyTabBar from './MyTabBar'
@@ -10,10 +9,13 @@ import Logo from '../Logo/Logo'
 import Divider from '../Divider/Divider'
 import Profile from '../../screens/Profile'
 import Friends from '../../screens/Friends'
+import Conversation from '../../screens/Conversation'
+import Notice from '../../screens/Notice'
+import {DataType} from '../../types/index'
 
-
+const {Navigator, Screen} = createMaterialTopTabNavigator()
 const TopTabs = () => {
-  const {Navigator, Screen} = createMaterialTopTabNavigator()
+  const {state} = React.useContext(MyContext)
   const {theme} = React.useContext(ThemeContext)
   const [visible, setVisible] = React.useState<boolean>(true)
   const translateY = React.useRef(new Animated.Value(0)).current
@@ -21,7 +23,7 @@ const TopTabs = () => {
   React.useEffect(() => {
     Animated.timing(translateY, {
       toValue: visible ? 0 : -46,
-      duration: 220,
+      duration: 300,
       useNativeDriver: true,
     }).start()
   }, [visible])
@@ -50,22 +52,30 @@ const TopTabs = () => {
           name="home"
           component={Home}
         />
-        <Screen
-          name="chat"
-          component={Chat}
-        />
-        <Screen
-          name="friends"
-          component={Friends}
-        />
-        <Screen
-          name="profile"
-          component={Profile}
-        />
-        <Screen
-          name="notice"
-          component={Chat}
-        />
+        {state.user && (
+          <>
+            <Screen
+              name="conversation"
+              component={Conversation}
+              options={{lazy: true}}
+            />
+            <Screen
+              name="friends"
+              component={Friends}
+              options={{lazy: true}}
+            />
+            <Screen
+              name="profile"
+              component={Profile}
+              options={{lazy: true}}
+            />
+            <Screen
+              name="notice"
+              component={Notice}
+              options={{lazy: true}}
+            />
+          </>
+        )}
       </Navigator>
     </View>
   )

@@ -49,7 +49,7 @@ const MyTabBar = (props: MyTabBarProps) => {
             case 'home':
               iconName = isFocused ? 'home' : 'home-outline'
               break
-            case 'chat':
+            case 'conversation':
               iconName = isFocused ? 'chatbubbles-sharp' : 'chatbubbles-outline'
               break
             case 'friends':

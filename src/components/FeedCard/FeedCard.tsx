@@ -11,21 +11,72 @@ import Attaches from './Attaches'
 import MyModal from '../MyModal/MyModal'
 import {useNavigation, NavigationProp} from '@react-navigation/native'
 import {RootStackParamList} from '../../types/route'
+import {FeedType} from '../../types/feed.type'
+import getUnionUrl from '../../utils/getUnionUrl'
+import {MyContext} from '../../context/context'
+import {feed_delete, feed_fav, feed_like} from '../../api/feed.api'
+import {ActionTypes} from '../../types/reducer'
+import myToast from '../../utils/Toast'
 
 interface FeedCardProps {
-  images: any[]
-  index: number
+  feed: FeedType
 }
 const FeedCard = React.memo((props: FeedCardProps) => {
-  const {images, index} = props
+  const {feed} = props
   const {theme} = React.useContext(ThemeContext)
+  const {state, dispatch} = React.useContext(MyContext)
   const [menuModalVisible, setMenuModalVisible] = React.useState<boolean>(false)
+  const [isLiked, setIsLiked] = React.useState<boolean>(
+    feed.feed_likeds.find(i => i.liked === state.user?.result.user_id) ? true : false,
+  )
+  const [likedCount, setLikedCount] = React.useState<number>(feed.feed_likeds.length)
+  const [isFav, setIsFav] = React.useState<boolean>(
+    feed.user_favourites.find(i => i.user_id === state.user?.result.user_id)
+      ? true
+      : false,
+  )
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
 
   /* 控制菜单modal */
   const handleMenuModalVisible = React.useCallback((visible: boolean) => {
     setMenuModalVisible(visible)
   }, [])
+
+  /* 点赞 */
+  const handleLike = () => {
+    if (!state.user) return
+    feed_like(
+      feed.feed_id,
+      state.user.result.user_id,
+      feed.feed_userID,
+      state.user.token,
+    ).then(val => {
+      if (val.code === 1) {
+        setIsLiked(p => !p)
+        setLikedCount(p => (isLiked ? p - 1 : p + 1))
+      }
+    })
+  }
+  /* 收藏 */
+  const handleFavourite = () => {
+    feed_fav(feed.feed_id, state.user?.result.user_id!, state.user?.token!).then(val => {
+      if (val.code === 1) {
+        setIsFav(p => !p)
+        setMenuModalVisible(p => !p)
+        myToast(val.message)
+      }
+    })
+  }
+  /* 删除 */
+  const handleRemove = () => {
+    feed_delete(feed.feed_id, state.user?.token!).then(val => {
+      if (val.code === 1) {
+        dispatch({type: ActionTypes.DELFEED, payload: feed.feed_id})
+        setMenuModalVisible(p => !p)
+        myToast(val.message)
+      }
+    })
+  }
 
   return (
     <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
@@ -35,71 +86,98 @@ const FeedCard = React.memo((props: FeedCardProps) => {
           {/* 头像 */}
           <View style={[styles.top_avatar]}>
             <Avatar
-              src={undefined}
+              src={getUnionUrl(feed.user.avatar)}
               size={40}
             />
             <View>
               <Text style={[styles.top_name, {color: theme.colors.defaultTextColor}]}>
-                小新
+                {feed.user.nick_name}
               </Text>
               <Text style={[styles.top_timestamp, {color: theme.colors.secondary}]}>
-                1天前
+                {feed.createdAt}
               </Text>
             </View>
           </View>
           {/* 菜单按钮 */}
-          <Pressable
-            hitSlop={10}
-            onPress={() => handleMenuModalVisible(true)}
-            style={{marginLeft: 'auto', padding: 4, borderRadius: 50, overflow: 'hidden'}}
-            android_ripple={{
-              color: theme.colors.clickbg,
-              borderless: false,
-              foreground: true,
-            }}>
-            <MIcons
-              name="more-horiz"
-              size={30}
-              color={theme.colors.secondary}
-            />
-          </Pressable>
+          {state.user && state.user.result.user_id === feed.feed_userID && (
+            <Pressable
+              hitSlop={10}
+              onPress={() => handleMenuModalVisible(true)}
+              style={{
+                marginLeft: 'auto',
+                padding: 4,
+                borderRadius: 50,
+                overflow: 'hidden',
+              }}
+              android_ripple={{
+                color: theme.colors.clickbg,
+                borderless: false,
+                foreground: true,
+              }}>
+              <MIcons
+                name="more-horiz"
+                size={30}
+                color={isFav ? theme.colors.primary : theme.colors.secondary}
+              />
+            </Pressable>
+          )}
         </View>
         {/* 中部 */}
-        <View style={[styles.middle, {backgroundColor: theme.colors.divider}]}>
-          <Attaches attaches={images} />
+        <View>
+          <View style={{paddingHorizontal: 10}}>
+            <Text style={{fontSize: 18, color: theme.colors.defaultTextColor}}>
+              {feed.feed_text}
+            </Text>
+          </View>
+          <View style={[styles.middle, {backgroundColor: theme.colors.divider}]}>
+            <Attaches attaches={feed.feed_attaches} />
+          </View>
         </View>
         {/* 底部 */}
         <View style={[styles.bottom]}>
           <View style={[styles.bootom_count]}>
-            <Text style={{color: theme.colors.secondary}}>2个万赞</Text>
+            <Text style={{color: theme.colors.secondary}}>{likedCount}个赞</Text>
             <Text style={{color: theme.colors.secondary}}>·</Text>
-            <Text style={{color: theme.colors.secondary}}>1,500条评论</Text>
+            <Text style={{color: theme.colors.secondary}}>
+              {feed.comment_count}条评论
+            </Text>
           </View>
           <Divider />
           <View style={[styles.bottom_btns]}>
             {/* 点赞 */}
             <Pressable
+              onPress={handleLike}
               style={[styles.bottom_btn]}
               android_ripple={{
                 color: theme.colors.divider,
                 borderless: false,
               }}>
-              <FIcons
-                size={24}
-                name="thumbs-o-up"
-                color={theme.colors.secondary}
-              />
+              {isLiked ? (
+                <FIcons
+                  size={24}
+                  name="thumbs-up"
+                  color={theme.colors.primary}
+                />
+              ) : (
+                <FIcons
+                  size={24}
+                  name="thumbs-o-up"
+                  color={theme.colors.secondary}
+                />
+              )}
+
               <Text style={{color: theme.colors.secondary}}>赞</Text>
-              {/* <FIcons
-                size={24}
-                name="thumbs-up"
-                color={theme.secondary}
-              /> */}
             </Pressable>
             {/* 评论 */}
             <Pressable
               style={[styles.bottom_btn]}
-              onPress={() => navigate.navigate('comment')}
+              onPress={() =>
+                navigate.navigate('comment', {
+                  feed_id: feed.feed_id,
+                  feed_userId: feed.feed_userID,
+                  user: state.user,
+                })
+              }
               android_ripple={{
                 color: theme.colors.divider,
                 borderless: false,
@@ -113,6 +191,7 @@ const FeedCard = React.memo((props: FeedCardProps) => {
             </Pressable>
             {/* 分享 */}
             <Pressable
+              onPress={() => myToast('功能正在准备中...')}
               style={[styles.bottom_btn]}
               android_ripple={{
                 color: theme.colors.divider,
@@ -136,22 +215,32 @@ const FeedCard = React.memo((props: FeedCardProps) => {
           children={
             <View style={[styles.options]}>
               <Pressable
-                style={[styles.option, {paddingLeft: 22}]}
+                onPress={handleFavourite}
+                style={[styles.option, {paddingLeft: isFav ? 18 : 22}]}
                 android_ripple={{color: theme.colors.clickbg}}>
-                <OIcons
-                  name="bookmark"
-                  size={30}
-                  color={theme.colors.secondary}
-                />
+                {isFav ? (
+                  <OIcons
+                    name="bookmark-slash"
+                    size={30}
+                    color={theme.colors.secondary}
+                  />
+                ) : (
+                  <OIcons
+                    name="bookmark"
+                    size={30}
+                    color={theme.colors.secondary}
+                  />
+                )}
                 <Text
                   style={[
                     styles.option_text,
                     {marginLeft: 4, color: theme.colors.defaultTextColor},
                   ]}>
-                  收藏这个帖子
+                  {isFav ? '从收藏夹移除这个帖子' : '收藏这个帖子'}
                 </Text>
               </Pressable>
               <Pressable
+                onPress={handleRemove}
                 style={[styles.option, {paddingLeft: 18}]}
                 android_ripple={{color: theme.colors.clickbg}}>
                 <AIcons
@@ -204,10 +293,7 @@ const styles = StyleSheet.create({
   top_timestamp: {
     fontSize: 12,
   },
-  middle: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
+  middle: {flexDirection: 'row', flexWrap: 'wrap', maxHeight: 360},
   bottom: {
     padding: 10,
   },

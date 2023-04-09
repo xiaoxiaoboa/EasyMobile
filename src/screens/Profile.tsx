@@ -1,14 +1,5 @@
 import React from 'react'
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  Image,
-  Text,
-  Pressable,
-  Switch,
-  Modal,
-} from 'react-native'
+import {View, StyleSheet, FlatList, Image, Text, Pressable, Modal} from 'react-native'
 import Avatar from '../components/Avatar/Avatar'
 import {ThemeContext} from '../theme'
 import Icons from 'react-native-vector-icons/Ionicons'
@@ -25,36 +16,64 @@ import {Asset, launchCamera, launchImageLibrary} from 'react-native-image-picker
 import {useNavigation, NavigationProp} from '@react-navigation/native'
 import {RootStackParamList} from '../types/route/index'
 import ModalTop from '../components/ModalTop/ModalTop'
+import getUnionUrl from '../utils/getUnionUrl'
+import {MyContext} from '../context/context'
+import {FeedType} from '../types/feed.type'
+import {feeds_query} from '../api/feed.api'
+import {alterationAvatar, alterationCover} from '../api/user.api'
+import {UserType} from '../types/user.type'
+import {DataType, ResponseType} from '../types'
+import {ActionTypes} from '../types/reducer'
+import {storage} from '../utils/getLocalData'
+import myToast from '../utils/Toast'
 
 const Profile = () => {
   const {theme} = React.useContext(ThemeContext)
+  const {state, dispatch} = React.useContext(MyContext)
+  const [myFeeds, setMyFeeds] = React.useState<FeedType[]>([])
+  const limitRef = React.useRef<number>(5)
+  const offsetRef = React.useRef<number>(0)
+
+  /* 获取用户帖子 */
+  const getMyFeeds = () => {
+    feeds_query(
+      state.user?.result.user_id!,
+      limitRef.current,
+      offsetRef.current,
+      state.user?.token!,
+    ).then(val => {
+      if (val.code === 1) {
+        setMyFeeds(p => [...p, ...val.data])
+        offsetRef.current += limitRef.current
+      }
+    })
+  }
+
   return (
     <View style={[styles.container, {backgroundColor: theme.colors.homebg}]}>
       <FlatList
-        data={Array(20)
-          .fill(0)
-          .map(() => images)}
+        data={myFeeds}
+        initialNumToRender={3}
+        onEndReachedThreshold={0.3}
+        onEndReached={getMyFeeds}
+        keyExtractor={({feed_id}) => feed_id}
         ListHeaderComponent={Header}
-        renderItem={({index, item}) => (
-          <FeedCard
-            key={index}
-            images={item}
-            index={index}
-          />
-        )}
+        showsVerticalScrollIndicator={false}
+        renderItem={({item}) => <FeedCard feed={item} />}
       />
     </View>
   )
 }
-const Header = () => {
+const Header = React.memo(() => {
   const {theme} = React.useContext(ThemeContext)
+  const {state} = React.useContext(MyContext)
   const [settingModalVisible, setSettingModalVisible] = React.useState<boolean>(false)
   const [backgroundModalVisible, setBackgroundModalVisible] =
     React.useState<boolean>(false)
   const [avatarModalVisible, setAvatarModalVisible] = React.useState<boolean>(false)
   const [confirmModalVisible, setConfirmModalVisible] = React.useState<boolean>(false)
-  const [avatarUri, setAvatarUri] = React.useState<string>()
-  const [backgroundUri, setBackgroundUri] = React.useState<string>()
+  const [avatarUri, setAvatarUri] = React.useState<Asset>()
+  const [backgroundUri, setBackgroundUri] = React.useState<Asset>()
 
   /* 打开modal */
   const handleBackgroundModal = React.useCallback((visible: boolean) => {
@@ -74,12 +93,12 @@ const Header = () => {
   }, [])
 
   /* 处理修改的头像 */
-  const handleAvatarUri = React.useCallback((uri?: string) => {
-    setAvatarUri(uri)
+  const handleAvatarUri = React.useCallback((avatar?: Asset) => {
+    setAvatarUri(avatar)
   }, [])
   /* 处理修改的背景图 */
-  const handleBackgroundUri = React.useCallback((uri?: string) => {
-    setBackgroundUri(uri)
+  const handleBackgroundUri = React.useCallback((background?: Asset) => {
+    setBackgroundUri(background)
   }, [])
 
   return (
@@ -90,9 +109,9 @@ const Header = () => {
           style={{width: '100%', height: 260}}
           source={
             backgroundUri
-              ? {uri: backgroundUri}
+              ? {uri: backgroundUri.uri}
               : {
-                  uri: 'https://images.pexels.com/photos/4041122/pexels-photo-4041122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+                  uri: getUnionUrl(state.user?.result.profile_img),
                 }
           }
         />
@@ -106,12 +125,23 @@ const Header = () => {
             borderRadius: 120,
           }}>
           <Avatar
-            src={avatarUri}
+            src={avatarUri?.uri || getUnionUrl(state.user?.result.avatar)}
             size={150}
             borderRadius={120}
           />
         </View>
-        <Text style={[styles.name, {color: theme.colors.defaultTextColor}]}>原小新</Text>
+        <Text
+          ellipsizeMode="tail"
+          numberOfLines={1}
+          style={[
+            styles.name,
+            {
+              color: theme.colors.defaultTextColor,
+              width: 150,
+            },
+          ]}>
+          {state.user?.result.nick_name}asdkabdahb
+        </Text>
 
         {/* 更换头像按钮 */}
         <Pressable
@@ -266,14 +296,10 @@ const Header = () => {
 
       {/* 更换头像或背景的确认modal */}
       <ImageConfirmModal
-        current_avatar={
-          'https://images.pexels.com/photos/4041122/pexels-photo-4041122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
-        }
-        current_bg={
-          'https://images.pexels.com/photos/4041122/pexels-photo-4041122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
-        }
-        avatar_uri={avatarUri}
-        bg_uri={backgroundUri}
+        current_avatar={state.user?.result.avatar!}
+        current_bg={state.user?.result.profile_img!}
+        avatar={avatarUri}
+        background={backgroundUri}
         theme={theme.colors}
         visible={confirmModalVisible}
         setVisible={handleConfirmVisible}
@@ -282,14 +308,13 @@ const Header = () => {
       />
     </View>
   )
-}
-
+})
 interface ChangePhotoModalProps {
   type: 'avatar' | 'bg'
   theme: Colors
   title: string
-  handleAvatarUri: (uri?: string) => void
-  handleBackgroundUri: (uri?: string) => void
+  handleAvatarUri: (avatar: Asset) => void
+  handleBackgroundUri: (background: Asset) => void
   closeModal: (visible: boolean) => void
   openConfirm: (visible: boolean, uri?: string) => void
 }
@@ -313,9 +338,9 @@ const ChangePhotoModal = React.memo((props: ChangePhotoModalProps) => {
       ({assets}) => {
         if (assets) {
           if (type === 'avatar') {
-            handleAvatarUri(assets[0]?.uri)
+            handleAvatarUri(assets[0])
           } else if (type === 'bg') {
-            handleBackgroundUri(assets[0]?.uri)
+            handleBackgroundUri(assets[0])
           }
           closeModal(false)
           openConfirm(true)
@@ -328,9 +353,9 @@ const ChangePhotoModal = React.memo((props: ChangePhotoModalProps) => {
     launchCamera({mediaType: 'photo', cameraType: 'back'}, ({assets}) => {
       if (assets) {
         if (type === 'avatar') {
-          handleAvatarUri(assets[0]?.uri)
+          handleAvatarUri(assets[0])
         } else if (type === 'bg') {
-          handleBackgroundUri(assets[0]?.uri)
+          handleBackgroundUri(assets[0])
         }
         closeModal(false)
         openConfirm(true)
@@ -390,31 +415,65 @@ const ChangePhotoModal = React.memo((props: ChangePhotoModalProps) => {
 interface ImageConfirmModalProps {
   current_avatar: string
   current_bg: string
-  avatar_uri?: string
-  bg_uri?: string
+  avatar?: Asset
+  background?: Asset
   theme: Colors
   visible: boolean
   setVisible: (visible: boolean) => void
-  handleAvatarUri: (uri?: string) => void
-  handleBackgroundUri: (uri?: string) => void
+  handleAvatarUri: (avatar?: Asset) => void
+  handleBackgroundUri: (background?: Asset) => void
 }
 const ImageConfirmModal = React.memo((props: ImageConfirmModalProps) => {
   const {
     visible,
     setVisible,
     theme,
-    avatar_uri,
-    bg_uri,
+    avatar,
+    background,
     current_avatar,
     current_bg,
     handleAvatarUri,
     handleBackgroundUri,
   } = props
+  const {state, dispatch} = React.useContext(MyContext)
 
-  const handleClose = (a_uri?: string, bg_uri?: string) => {
-    handleAvatarUri(a_uri)
-    handleBackgroundUri(bg_uri)
+  const handleClose = () => {
     setVisible(false)
+  }
+  /* 确定保存更改 */
+  const handleSubmit = (avatar?: Asset, background?: Asset) => {
+    handleAvatarUri(avatar)
+    handleBackgroundUri(background)
+    if (avatar) {
+      alterationAvatar(state.user?.result.user_id!, avatar, state.user?.token!).then(
+        val => {
+          changeLocalUserData(val)
+        },
+      )
+    }
+    if (background) {
+      alterationCover(
+        {file: background, user_id: state.user?.result.user_id!},
+        state.user?.token!,
+      ).then(val => {
+        changeLocalUserData(val)
+      })
+    }
+    setVisible(false)
+  }
+
+  const changeLocalUserData = (newData: ResponseType<UserType>) => {
+    if (newData.code === 1) {
+      const userData: DataType = {
+        result: newData.data,
+        token: state.user?.token!,
+      }
+      dispatch({type: ActionTypes.USER, payload: userData})
+      storage.set('user', JSON.stringify(userData))
+      myToast(newData.message)
+    } else {
+      myToast(newData.message)
+    }
   }
 
   return (
@@ -426,16 +485,16 @@ const ImageConfirmModal = React.memo((props: ImageConfirmModalProps) => {
         <ModalTop
           name="预览"
           onClose={() => handleClose()}
-          handleSubmit={() => handleClose(avatar_uri, bg_uri)}
+          handleSubmit={() => handleSubmit(avatar, background)}
           buttonName="保存"
         />
         <Divider />
-        <View style={[styles.top, {marginTop: 10}]}>
+        <View style={[styles.top]}>
           {/* 背景图 */}
           <View>
             <Image
               style={{width: '100%', height: 260}}
-              source={{uri: bg_uri || current_bg}}
+              source={{uri: background?.uri || getUnionUrl(current_bg)}}
             />
           </View>
           {/* 头像和名字 */}
@@ -447,7 +506,7 @@ const ImageConfirmModal = React.memo((props: ImageConfirmModalProps) => {
                 borderRadius: 120,
               }}>
               <Avatar
-                src={avatar_uri || current_avatar}
+                src={avatar?.uri || getUnionUrl(current_avatar)}
                 size={150}
                 borderRadius={120}
               />

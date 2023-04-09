@@ -39,11 +39,10 @@ const ModalTop: React.FC<ModalTop> = props => {
           <FIcons
             name="arrow-left"
             size={30}
-            color={theme.colors.isDark ? '#FFFFFF' : '#000000'}
+            color={theme.colors.defaultTextColor}
           />
         </Pressable>
-        <Text
-          style={[styles.topText, {color: theme.colors.isDark ? '#FFFFFF' : '#000000'}]}>
+        <Text style={[styles.topText, {color: theme.colors.defaultTextColor}]}>
           {name}
         </Text>
       </View>

@@ -1,51 +1,34 @@
 import React from 'react'
-import {Image, Pressable,Dimensions} from 'react-native'
+import {Image, Pressable, Dimensions} from 'react-native'
 import Swiper from '../Swiper/Swiper'
+import {Feed_attachType} from '../../types/feed.type'
+import getUnionUrl from '../../utils/getUnionUrl'
 
 interface AttachesProps {
-  attaches: any[]
+  attaches: Feed_attachType[]
 }
 const Attaches: React.FC<AttachesProps> = props => {
   const {attaches} = props
   const [swiperVisible, setSwiperVisible] = React.useState<boolean>(false)
   const targetIndexRef = React.useRef<any>()
-  const sourceRef = React.useRef<any[]>([])
 
-  const windowWidth = React.useMemo(() => Dimensions.get('window').width, [])
-  const [width, setWidth] = React.useState(windowWidth)
-  const [height, setHeight] = React.useState(windowWidth)
+  const width = React.useMemo(() => Dimensions.get('window').width, [])
+  const height = React.useRef(360).current
+  const [singleHeight, setSingleHeight] = React.useState<number>(0)
 
-
+  /* 当只有一张照片时，控制其高度 */
   React.useEffect(() => {
-    calculateImageSize()
+    if (attaches.length === 1) {
+      Image.getSize(getUnionUrl(attaches[0].attach_link)!, (singleWidth, height) => {
+        const getHeight = (width / singleWidth) * height
+        setSingleHeight(getHeight < 360 ? getHeight : 360)
+      })
+    }
   }, [])
 
-  /* 计算图片尺寸 */
-  const calculateImageSize = () => {
-    const imageCount = attaches.length
-    if (imageCount === 1) {
-      const image = attaches[0]
-      Image.getSize(image.uri, (width, height) => {
-        const aspectRatio = width / height
-        if (aspectRatio >= 1) {
-          setHeight(width / aspectRatio)
-        } else {
-          setWidth(height * aspectRatio)
-        }
-      })
-    } else if (imageCount === 2) {
-      setHeight(width / 2)
-    } else if (imageCount === 3) {
-      setHeight(width * 0.75)
-    } else if (imageCount >= 4) {
-      setHeight(width / 1.2)
-    }
-  }
-
   /* 查看图片 */
-  const handleOpenSwiper = React.useCallback((targetIndex: any, source: any[]) => {
+  const handleOpenSwiper = React.useCallback((targetIndex: number) => {
     targetIndexRef.current = targetIndex
-    sourceRef.current = source
     setSwiperVisible(p => !p)
   }, [])
   return (
@@ -56,13 +39,12 @@ const Attaches: React.FC<AttachesProps> = props => {
             return (
               <Pressable
                 key={index}
-                onPress={() => handleOpenSwiper(index, attaches)}>
+                onPress={() => handleOpenSwiper(index)}>
                 <Image
-                  source={{uri: item.uri}}
+                  source={{uri: getUnionUrl(item.attach_link)}}
                   style={{
                     width: width,
-                    height: height,
-                    transform: [{translateX: windowWidth / 2 - width / 2}],
+                    height: singleHeight,
                   }}
                 />
               </Pressable>
@@ -71,41 +53,40 @@ const Attaches: React.FC<AttachesProps> = props => {
             return (
               <Pressable
                 key={index}
-                onPress={() => handleOpenSwiper(index, attaches)}>
+                onPress={() => handleOpenSwiper(index)}>
                 <Image
-                  source={{uri: item.uri}}
-                  style={{width: width / 2, height}}
+                  source={{uri: getUnionUrl(item.attach_link)}}
+                  style={{width: width, height: height / 2}}
                 />
               </Pressable>
             )
           case 3:
-            index === 2 ? (
+            return index === 0 ? (
               <Pressable
                 key={index}
-                onPress={() => handleOpenSwiper(index, attaches)}>
+                onPress={() => handleOpenSwiper(index)}>
                 <Image
-                  source={{uri: item.uri}}
-                  style={{width, height: (height / 4) * 3}}
+                  source={{uri: getUnionUrl(item.attach_link)}}
+                  style={{width: width, height: height / 2}}
                 />
               </Pressable>
             ) : (
               <Pressable
                 key={index}
-                onPress={() => handleOpenSwiper(index, attaches)}>
+                onPress={() => handleOpenSwiper(index)}>
                 <Image
-                  source={{uri: item.uri}}
-                  style={{width: width / 2, height: (height / 4) * 3}}
+                  source={{uri: getUnionUrl(item.attach_link)}}
+                  style={{width: width / 2, height: height / 2}}
                 />
               </Pressable>
             )
-            return
           case 4:
             return (
               <Pressable
                 key={index}
-                onPress={() => handleOpenSwiper(index, attaches)}>
+                onPress={() => handleOpenSwiper(index)}>
                 <Image
-                  source={{uri: item.uri}}
+                  source={{uri: getUnionUrl(item.attach_link)}}
                   style={{width: width / 2, height: height / 2}}
                 />
               </Pressable>
@@ -116,7 +97,7 @@ const Attaches: React.FC<AttachesProps> = props => {
         }
       })}
       <Swiper
-        source={sourceRef.current}
+        source={attaches}
         targetIndex={targetIndexRef.current}
         visible={swiperVisible}
         setVisible={setSwiperVisible}
