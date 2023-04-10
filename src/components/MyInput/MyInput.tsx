@@ -1,13 +1,5 @@
 import React from 'react'
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  Pressable,
-  Keyboard,
-  KeyboardAvoidingView,
-  Button,
-} from 'react-native'
+import {StyleSheet, View, TextInput, Pressable} from 'react-native'
 import FIcons from 'react-native-vector-icons/FontAwesome'
 import {ThemeContext} from '../../theme'
 import EmojiPicker, {EmojiKeyboard} from 'rn-emoji-keyboard'
@@ -16,6 +8,7 @@ import {Colors} from '../../theme/theme-types'
 
 interface MyInputProps {
   placeholder: string
+  editable?: boolean
   hiddenIcon?: boolean
   hiddenEmoji?: boolean
   paddingHorizontal?: number
@@ -24,6 +17,7 @@ interface MyInputProps {
 }
 const MyInput = React.memo((props: MyInputProps) => {
   const {
+    editable = true,
     hiddenIcon = true,
     hiddenEmoji = true,
     placeholder,
@@ -60,6 +54,7 @@ const MyInput = React.memo((props: MyInputProps) => {
           />
           {/* input */}
           <TextInput
+            editable={editable}
             ref={inputRef}
             placeholder={placeholder}
             placeholderTextColor={theme.colors.secondary}

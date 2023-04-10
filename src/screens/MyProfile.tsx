@@ -13,7 +13,6 @@ import ToggleTheme from '../components/ToggleTheme/ToggleTheme'
 import Divider from '../components/Divider/Divider'
 import {Colors} from '../theme/theme-types'
 import {Asset, launchCamera, launchImageLibrary} from 'react-native-image-picker'
-import {useNavigation, NavigationProp} from '@react-navigation/native'
 import {RootStackParamList} from '../types/route/index'
 import ModalTop from '../components/ModalTop/ModalTop'
 import getUnionUrl from '../utils/getUnionUrl'
@@ -26,11 +25,11 @@ import {DataType, ResponseType} from '../types'
 import {ActionTypes} from '../types/reducer'
 import {storage} from '../utils/getLocalData'
 import myToast from '../utils/Toast'
+import {useNavigation, NavigationProp} from '@react-navigation/native'
 
-const Profile = () => {
+const MyProfile = () => {
   const {theme} = React.useContext(ThemeContext)
   const {state, dispatch} = React.useContext(MyContext)
-  const [myFeeds, setMyFeeds] = React.useState<FeedType[]>([])
   const limitRef = React.useRef<number>(5)
   const offsetRef = React.useRef<number>(0)
 
@@ -43,16 +42,23 @@ const Profile = () => {
       state.user?.token!,
     ).then(val => {
       if (val.code === 1) {
-        setMyFeeds(p => [...p, ...val.data])
+        dispatch({type: ActionTypes.PROFILEFEEDS, payload: val.data})
+
         offsetRef.current += limitRef.current
       }
     })
   }
 
   return (
-    <View style={[styles.container, {backgroundColor: theme.colors.homebg}]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.homebg,
+        },
+      ]}>
       <FlatList
-        data={myFeeds}
+        data={state.profileFeeds}
         initialNumToRender={3}
         onEndReachedThreshold={0.3}
         onEndReached={getMyFeeds}
@@ -64,6 +70,7 @@ const Profile = () => {
     </View>
   )
 }
+
 const Header = React.memo(() => {
   const {theme} = React.useContext(ThemeContext)
   const {state} = React.useContext(MyContext)
@@ -74,6 +81,7 @@ const Header = React.memo(() => {
   const [confirmModalVisible, setConfirmModalVisible] = React.useState<boolean>(false)
   const [avatarUri, setAvatarUri] = React.useState<Asset>()
   const [backgroundUri, setBackgroundUri] = React.useState<Asset>()
+  const navigate = useNavigation<NavigationProp<RootStackParamList>>()
 
   /* 打开modal */
   const handleBackgroundModal = React.useCallback((visible: boolean) => {
@@ -106,7 +114,7 @@ const Header = React.memo(() => {
       {/* 背景图 */}
       <View>
         <Image
-          style={{width: '100%', height: 260}}
+          style={{width: '100%', height: 240}}
           source={
             backgroundUri
               ? {uri: backgroundUri.uri}
@@ -115,45 +123,17 @@ const Header = React.memo(() => {
                 }
           }
         />
-      </View>
-      {/* 头像和名字 */}
-      <View style={[styles.avatar]}>
-        <View
-          style={{
-            borderWidth: 5,
-            borderColor: theme.colors.background,
-            borderRadius: 120,
-          }}>
-          <Avatar
-            src={avatarUri?.uri || getUnionUrl(state.user?.result.avatar)}
-            size={150}
-            borderRadius={120}
-          />
-        </View>
-        <Text
-          ellipsizeMode="tail"
-          numberOfLines={1}
-          style={[
-            styles.name,
-            {
-              color: theme.colors.defaultTextColor,
-              width: 150,
-            },
-          ]}>
-          {state.user?.result.nick_name}asdkabdahb
-        </Text>
-
-        {/* 更换头像按钮 */}
+        {/* 更换背景图按钮 */}
         <Pressable
-          onPress={() => handleAvatarModalVisible(true)}
+          onPress={() => handleBackgroundModal(true)}
           style={({pressed}) => [
             styles.background_btn,
             {
               backgroundColor: theme.colors.divider,
               transform: [{scale: pressed ? 0.97 : 1}],
               opacity: pressed ? 0.9 : 1,
-              bottom: 40,
-              right: -10,
+              bottom: 10,
+              right: 16,
             },
           ]}>
           <Icons
@@ -163,77 +143,92 @@ const Header = React.memo(() => {
           />
         </Pressable>
       </View>
-      {/* 更换背景图按钮 */}
-      <Pressable
-        onPress={() => handleBackgroundModal(true)}
-        style={({pressed}) => [
-          styles.background_btn,
-          {
-            backgroundColor: theme.colors.divider,
-            transform: [{scale: pressed ? 0.97 : 1}],
-            opacity: pressed ? 0.9 : 1,
-            bottom: 90,
-            right: 16,
-          },
-        ]}>
-        <Icons
-          name="camera"
-          size={30}
-          color={theme.colors.defaultTextColor}
-        />
-      </Pressable>
-      {/* 按钮 */}
-      <View style={[styles.group_btns, {gap: 10}]}>
-        <Pressable
-          style={({pressed}) => [
-            styles.friend_btn,
+      {/* 头像和名字 */}
+      <View style={[styles.avatar_wrapper]}>
+        <View
+          style={[
+            styles.avatar,
             {
-              backgroundColor: theme.colors.primary,
-              transform: [{scale: pressed ? 0.97 : 1}],
-              opacity: pressed ? 0.9 : 1,
+              borderColor: theme.colors.background,
             },
           ]}>
-          <EIcons
-            name="plus"
-            size={20}
-            color="#FFFFFF"
+          <Avatar
+            src={avatarUri?.uri || getUnionUrl(state.user?.result.avatar)}
+            size={150}
+            borderRadius={120}
           />
-          <Text style={{color: '#FFFFFF', fontSize: 16}}>添加好友</Text>
-        </Pressable>
-        {/* <Pressable
-          style={({pressed}) => [
-            styles.friend_btn,
+          {/* 更换头像按钮 */}
+          <Pressable
+            onPress={() => handleAvatarModalVisible(true)}
+            style={({pressed}) => [
+              styles.background_btn,
+              {
+                backgroundColor: theme.colors.divider,
+                transform: [{scale: pressed ? 0.97 : 1}],
+                opacity: pressed ? 0.9 : 1,
+                bottom: 10,
+                right: -20,
+              },
+            ]}>
+            <Icons
+              name="camera"
+              size={30}
+              color={theme.colors.defaultTextColor}
+            />
+          </Pressable>
+        </View>
+        {/* 名字 */}
+        <Text
+          style={[
+            styles.name,
             {
-              backgroundColor: theme.clolors.primary,
-              transform: [{scale: pressed ? 0.97 : 1}],
-              opacity: pressed ? 0.9 : 1,
+              color: theme.colors.defaultTextColor,
+              paddingLeft: 10,
             },
           ]}>
-          <Icons
-            name="chatbubble-outline"
-            size={20}
-            color="#FFFFFF"
-          />
-          <Text style={{color: '#FFFFFF', fontSize: 16}}>发消息</Text>
-        </Pressable> */}
-        {/* 设置按钮 */}
-        <Pressable
-          onPress={() => handleSettingModalVisible(true)}
-          style={({pressed}) => [
-            styles.friend_btn,
-            {
-              backgroundColor: theme.colors.divider,
-              transform: [{scale: pressed ? 0.97 : 1}],
-              opacity: pressed ? 0.9 : 1,
-              paddingRight: 8,
-            },
-          ]}>
-          <Icons
-            name="settings"
-            size={20}
-            color={theme.colors.defaultTextColor}
-          />
-        </Pressable>
+          {state.user?.result.nick_name}
+        </Text>
+        {/* 按钮 */}
+        <View style={[styles.group_btns, {gap: 10}]}>
+          {/* 发帖子按钮 */}
+          <Pressable
+            onPress={() => navigate.navigate('postting')}
+            style={({pressed}) => [
+              styles.friend_btn,
+              {
+                backgroundColor: theme.colors.primary,
+                transform: [{scale: pressed ? 0.97 : 1}],
+                opacity: pressed ? 0.9 : 1,
+              },
+            ]}>
+            <EIcons
+              name="plus"
+              size={20}
+              color="#FFFFFF"
+            />
+            <Text style={{color: '#FFFFFF', fontSize: 16, fontWeight: '500'}}>
+              发帖子
+            </Text>
+          </Pressable>
+
+          {/* 设置按钮 */}
+          <Pressable
+            onPress={() => handleSettingModalVisible(true)}
+            style={({pressed}) => [
+              styles.setting,
+              {
+                backgroundColor: theme.colors.divider,
+                transform: [{scale: pressed ? 0.97 : 1}],
+                opacity: pressed ? 0.9 : 1,
+              },
+            ]}>
+            <Icons
+              name="settings"
+              size={20}
+              color={theme.colors.defaultTextColor}
+            />
+          </Pressable>
+        </View>
       </View>
 
       {/* settingmodal */}
@@ -439,6 +434,8 @@ const ImageConfirmModal = React.memo((props: ImageConfirmModalProps) => {
 
   const handleClose = () => {
     setVisible(false)
+    handleAvatarUri()
+    handleBackgroundUri()
   }
   /* 确定保存更改 */
   const handleSubmit = (avatar?: Asset, background?: Asset) => {
@@ -489,37 +486,45 @@ const ImageConfirmModal = React.memo((props: ImageConfirmModalProps) => {
           buttonName="保存"
         />
         <Divider />
-        <View style={[styles.top]}>
-          {/* 背景图 */}
-          <View>
-            <Image
-              style={{width: '100%', height: 260}}
-              source={{uri: background?.uri || getUnionUrl(current_bg)}}
+        {/* 背景图 */}
+        <View>
+          <Image
+            style={{width: '100%', height: 240}}
+            source={{uri: background?.uri || getUnionUrl(current_bg)}}
+          />
+        </View>
+        {/* 头像和名字 */}
+        <View style={[styles.avatar_wrapper]}>
+          <View
+            style={[
+              styles.avatar,
+              {
+                borderColor: theme.background,
+              },
+            ]}>
+            <Avatar
+              src={avatar?.uri || getUnionUrl(current_avatar)}
+              size={150}
+              borderRadius={120}
             />
           </View>
-          {/* 头像和名字 */}
-          <View style={[styles.avatar]}>
-            <View
-              style={{
-                borderWidth: 5,
-                borderColor: theme.background,
-                borderRadius: 120,
-              }}>
-              <Avatar
-                src={avatar?.uri || getUnionUrl(current_avatar)}
-                size={150}
-                borderRadius={120}
-              />
-            </View>
-            <Text style={[styles.name, {color: theme.defaultTextColor}]}>原小新</Text>
-          </View>
+          <Text
+            style={[
+              styles.name,
+              {
+                color: theme.defaultTextColor,
+                paddingLeft: 10,
+              },
+            ]}>
+            {state.user?.result.nick_name}
+          </Text>
         </View>
       </View>
     </Modal>
   )
 })
 
-export default Profile
+export default MyProfile
 
 const styles = StyleSheet.create({
   container: {
@@ -527,13 +532,18 @@ const styles = StyleSheet.create({
     paddingTop: 54,
   },
   top: {
-    height: 340,
+  },
+  avatar_wrapper: {
+    alignItems: 'flex-start',
+    paddingTop: 40,
+    gap: 10,
   },
   avatar: {
     position: 'absolute',
-    bottom: 5,
-    left: 20,
-    alignItems: 'center',
+    top: -120,
+    left: 10,
+    borderWidth: 5,
+    borderRadius: 120,
   },
   name: {
     fontSize: 30,
@@ -549,20 +559,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   group_btns: {
-    position: 'absolute',
-    right: 26,
-    bottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingBottom: 10,
   },
   friend_btn: {
+    justifyContent: 'center',
+    flex: 1,
     paddingVertical: 8,
-    paddingLeft: 8,
-    paddingRight: 10,
     borderRadius: 6,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  setting: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 6,
   },
   modal_options: {
     // flex: 1,

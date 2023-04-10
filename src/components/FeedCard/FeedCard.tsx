@@ -20,9 +20,11 @@ import myToast from '../../utils/Toast'
 
 interface FeedCardProps {
   feed: FeedType
+  clickComment?: boolean
+  checkNoticeDelFeed?: () => void
 }
 const FeedCard = React.memo((props: FeedCardProps) => {
-  const {feed} = props
+  const {feed, clickComment = false, checkNoticeDelFeed} = props
   const {theme} = React.useContext(ThemeContext)
   const {state, dispatch} = React.useContext(MyContext)
   const [menuModalVisible, setMenuModalVisible] = React.useState<boolean>(false)
@@ -72,10 +74,30 @@ const FeedCard = React.memo((props: FeedCardProps) => {
     feed_delete(feed.feed_id, state.user?.token!).then(val => {
       if (val.code === 1) {
         dispatch({type: ActionTypes.DELFEED, payload: feed.feed_id})
+
         setMenuModalVisible(p => !p)
+        /* 在查看通知页面进入帖子时，点击删除帖子触发 */
+        checkNoticeDelFeed && checkNoticeDelFeed()
         myToast(val.message)
       }
     })
+  }
+  /* 跳转至用户主页 */
+  const handleNavigate = () => {
+    if (state.user?.result.user_id === feed.feed_userID) return
+    navigate.navigate('user_profile', {
+      user_id: state.user?.result.user_id!,
+      to_userId: feed.feed_userID,
+    })
+  }
+  /* 评论 */
+  const handleComment = () => {
+    !clickComment &&
+      navigate.navigate('comment', {
+        feed_id: feed.feed_id,
+        feed_userId: feed.feed_userID,
+        user: state.user,
+      })
   }
 
   return (
@@ -84,9 +106,15 @@ const FeedCard = React.memo((props: FeedCardProps) => {
         {/* 顶部 */}
         <View style={[styles.top]}>
           {/* 头像 */}
-          <View style={[styles.top_avatar]}>
+          <Pressable
+            onPress={handleNavigate}
+            style={[styles.top_avatar]}>
             <Avatar
-              src={getUnionUrl(feed.user.avatar)}
+              src={getUnionUrl(
+                state.user?.result.user_id === feed.feed_userID
+                  ? state.user?.result.avatar
+                  : feed.user.avatar,
+              )}
               size={40}
             />
             <View>
@@ -97,7 +125,7 @@ const FeedCard = React.memo((props: FeedCardProps) => {
                 {feed.createdAt}
               </Text>
             </View>
-          </View>
+          </Pressable>
           {/* 菜单按钮 */}
           {state.user && state.user.result.user_id === feed.feed_userID && (
             <Pressable
@@ -171,13 +199,7 @@ const FeedCard = React.memo((props: FeedCardProps) => {
             {/* 评论 */}
             <Pressable
               style={[styles.bottom_btn]}
-              onPress={() =>
-                navigate.navigate('comment', {
-                  feed_id: feed.feed_id,
-                  feed_userId: feed.feed_userID,
-                  user: state.user,
-                })
-              }
+              onPress={handleComment}
               android_ripple={{
                 color: theme.colors.divider,
                 borderless: false,

@@ -7,6 +7,8 @@ import Comment from '../screens/Comment'
 import {TransitionSpec} from '@react-navigation/stack/lib/typescript/src/types'
 import Chat from '../screens/Chat'
 import Login, {Register} from '../screens/Login'
+import UserProfile from '../screens/UserProfile'
+import CheckNotice from '../screens/CheckNotice'
 
 const RootStack = createStackNavigator<RootStackParamList>()
 const Routes = () => {
@@ -75,6 +77,14 @@ const Routes = () => {
         <RootStack.Screen
           name="register"
           component={Register}
+        />
+        <RootStack.Screen
+          name="user_profile"
+          component={UserProfile}
+        />
+        <RootStack.Screen
+          name="checkNotice"
+          component={CheckNotice}
         />
       </RootStack.Group>
     </RootStack.Navigator>

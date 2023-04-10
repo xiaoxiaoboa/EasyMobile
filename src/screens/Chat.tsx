@@ -56,10 +56,12 @@ const Chat = () => {
             initialNumToRender={15}
             showsVerticalScrollIndicator={false}
             renderItem={({index, item}) => (
-              <Message
-                me={item.me}
-                text={item.text}
-              />
+              // <Message
+              //   me={item.me}
+              //   text={item.text}
+
+              // />
+              <></>
             )}
           />
         </View>

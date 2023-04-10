@@ -2,7 +2,8 @@ import {Asset} from 'react-native-image-picker'
 import {DataType, ResponseType} from '../types'
 import {AlterationCoverType, CompressedType, UserType} from '../types/user.type'
 import request, {uploadRequest} from '../utils/request'
-import { FriendType } from '../types/friend.type'
+import {FriendType} from '../types/friend.type'
+import {OtherNoticeType} from '../types/notice.type'
 
 /* 登录 */
 export const sign_in = async (
@@ -73,12 +74,51 @@ export const alterationAvatar = async (
 /* 查找好友 */
 export const getFriends = (
   user_id: string,
-  t: string
+  t: string,
 ): Promise<ResponseType<FriendType[]>> => {
   return request({
-    url: "/friends",
-    methods: "POST",
-    body: { user_id },
-    token: t
+    url: '/friends',
+    methods: 'POST',
+    body: {user_id},
+    token: t,
+  })
+}
+
+/* 查询用户 */
+export const queryUser = async (
+  user_id: string,
+  t: string,
+): Promise<ResponseType<UserType>> => {
+  return await request({
+    url: '/user',
+    methods: 'POST',
+    body: {user_id},
+    token: t,
+  })
+}
+
+/* 查询好友请求点赞评论未读的notice */
+export const queryNotice = async (
+  user_id: string,
+  t: string,
+): Promise<ResponseType<OtherNoticeType[]>> => {
+  return await request({
+    url: '/notice',
+    methods: 'POST',
+    body: {target_id: user_id},
+    token: t,
+  })
+}
+
+/* 将和已读消息相关的记录都更新为已读 */
+export const updateNotice = async (
+  {source_id, notice_id}: {source_id?: string; notice_id?: string},
+  t: string,
+): Promise<ResponseType<void>> => {
+  return await request({
+    url: '/read',
+    methods: 'POST',
+    body: {source_id, notice_id},
+    token: t,
   })
 }

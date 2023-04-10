@@ -14,6 +14,12 @@ const reducer = (state: ReducerState, action: ActionsType) => {
       return actions.postting(state, payload)
     case ActionTypes.FRIENDS:
       return actions.friends(state, payload)
+    case ActionTypes.PROFILEFEEDS:
+      return actions.profileFeeds(state, payload)
+    case ActionTypes.NOTICE:
+      return actions.notice(state, payload)
+    case ActionTypes.DELNOTICE:
+      return actions.delNotice(state, payload)
     default:
       return state
   }

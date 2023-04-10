@@ -1,5 +1,5 @@
 import React from 'react'
-import {Text, View, Button, FlatList, StyleSheet, Pressable} from 'react-native'
+import {Text, View, FlatList, StyleSheet, Pressable} from 'react-native'
 import {ThemeContext} from '../theme'
 import MyInput from '../components/MyInput/MyInput'
 import Avatar from '../components/Avatar/Avatar'
@@ -22,7 +22,7 @@ const Conversation = () => {
           paddingHorizontal={10}
         />
         <FlatList
-          data={Array(100)
+          data={Array(1)
             .fill(0)
             .map((item, index) => index + 1)}
           maxToRenderPerBatch={10}
@@ -50,6 +50,7 @@ const RenderItem = (props: RenderItemProps) => {
   const handleModalVisible = React.useCallback(() => {
     setModalVisible(p => !p)
   }, [])
+
   return (
     <View>
       <Pressable

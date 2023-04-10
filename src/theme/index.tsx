@@ -15,10 +15,11 @@ export const ThemeContext = React.createContext<ThemeContextType>({
 type ThemeProviderType = {children: React.ReactNode}
 export const ThemeProvider = ({children}: ThemeProviderType) => {
   const [theme, setTheme] = React.useState<Theme>(initValue)
+  const modeCacheRef = React.useRef<'auto' | 'dark' | 'light'>(theme.mode)
 
   React.useEffect(() => {
     Appearance.addChangeListener(({colorScheme}) => {
-      if (theme.mode === 'auto') {
+      if (modeCacheRef.current === 'auto') {
         setTheme(p => ({
           ...p,
           colors: colorScheme === 'dark' ? MyColors.dark : MyColors.light,
@@ -26,6 +27,9 @@ export const ThemeProvider = ({children}: ThemeProviderType) => {
       }
     })
   }, [])
+  React.useEffect(() => {
+    modeCacheRef.current = theme.mode
+  }, [theme.mode])
 
   /* toggle theme */
   const toggleTheme = React.useCallback(
@@ -41,20 +45,16 @@ export const ThemeProvider = ({children}: ThemeProviderType) => {
           }
           break
         case 'dark':
-          if (theme.mode !== 'dark') {
-            setTheme({
-              mode: 'dark',
-              colors: MyColors.dark,
-            })
-          }
+          setTheme({
+            mode: 'dark',
+            colors: MyColors.dark,
+          })
           break
         case 'light':
-          if (theme.mode !== 'light') {
-            setTheme({
-              mode: 'light',
-              colors: MyColors.light,
-            })
-          }
+          setTheme({
+            mode: 'light',
+            colors: MyColors.light,
+          })
           break
         default:
           break

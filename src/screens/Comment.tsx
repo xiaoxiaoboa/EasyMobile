@@ -53,6 +53,7 @@ const Comment = React.memo((props: CommentProps) => {
         isBtnDisplay={false}
         onClose={() => navigation.goBack()}
       />
+      <Divider />
       <View style={[styles.comment]}>
         <FlatList
           data={comments}
@@ -98,5 +99,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 10,
     gap: 10,
+    paddingTop: 10,
   },
 })

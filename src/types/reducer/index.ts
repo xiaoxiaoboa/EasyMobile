@@ -2,6 +2,7 @@ import {DataType} from '../index'
 import {FeedType} from '../feed.type'
 import {UserType} from '../user.type'
 import {FriendType} from '../friend.type'
+import {OtherNoticeType} from '../notice.type'
 
 export interface createContextType {
   state: ReducerState
@@ -12,6 +13,8 @@ export interface ReducerState {
   user: DataType | undefined
   homeFeeds: FeedType[]
   friends: FriendType[]
+  profileFeeds: FeedType[]
+  notice: OtherNoticeType[]
 }
 
 export enum ActionTypes {
@@ -20,6 +23,9 @@ export enum ActionTypes {
   DELFEED = 'delFeed',
   POSTTING = 'postting',
   FRIENDS = 'friends',
+  PROFILEFEEDS = 'profileFeeds',
+  NOTICE = 'notice',
+  DELNOTICE = 'delNotice',
 }
 
 export type ActionMap<M extends {[index: string]: any}> = {
@@ -39,6 +45,9 @@ export interface ReducerPaylodType {
   [ActionTypes.DELFEED]: string
   [ActionTypes.POSTTING]: FeedType
   [ActionTypes.FRIENDS]: FriendType[]
+  [ActionTypes.PROFILEFEEDS]: FeedType[]
+  [ActionTypes.NOTICE]: OtherNoticeType[]
+  [ActionTypes.DELNOTICE]: string
 }
 
 export type ActionsType = ActionMap<ReducerPaylodType>[keyof ActionMap<ReducerPaylodType>]

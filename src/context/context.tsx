@@ -8,6 +8,8 @@ const initialValue: ReducerState = {
   user: getLocalData('user'),
   homeFeeds: [],
   friends: [],
+  profileFeeds: [],
+  notice: [],
 }
 
 export const MyContext = React.createContext<createContextType>({

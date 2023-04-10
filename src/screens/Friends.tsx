@@ -1,12 +1,5 @@
 import React from 'react'
-import {
-  StyleSheet,
-  View,
-  Text,
-  FlatList,
-  Pressable,
-  ListRenderItemInfo,
-} from 'react-native'
+import {StyleSheet, View, Text, FlatList, Pressable} from 'react-native'
 import {ThemeContext} from '../theme'
 import MyInput from '../components/MyInput/MyInput'
 import Avatar from '../components/Avatar/Avatar'
@@ -15,8 +8,7 @@ import Divider from '../components/Divider/Divider'
 import MyModal from '../components/MyModal/MyModal'
 import {Colors} from '../theme/theme-types'
 import Icons from 'react-native-vector-icons/Ionicons'
-import Acons from 'react-native-vector-icons/AntDesign'
-import {useNavigation} from '@react-navigation/native'
+import AIcons from 'react-native-vector-icons/AntDesign'
 import {getFriends} from '../api/user.api'
 import {MyContext} from '../context/context'
 import {ActionTypes} from '../types/reducer'
@@ -192,7 +184,7 @@ const ModalContent = React.memo((props: ModalContentProps) => {
         <Pressable
           style={[styles.option]}
           android_ripple={{color: theme.clickbg}}>
-          <Acons
+          <AIcons
             name="deleteuser"
             size={30}
             color="#ff5757ed"
@@ -202,7 +194,8 @@ const ModalContent = React.memo((props: ModalContentProps) => {
               删除好友
             </Text>
             <Text style={[{color: theme.secondary}]}>
-              永久删除好友<Text style={{fontWeight: '500'}}>原小新</Text>的全部相关信息
+              永久删除好友<Text style={{fontWeight: '500'}}>{friend.nick_name}</Text>
+              的全部相关信息
             </Text>
           </View>
         </Pressable>

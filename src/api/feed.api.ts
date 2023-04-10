@@ -117,3 +117,16 @@ export const feeds_query = async (
     token: t,
   })
 }
+
+/* 获取某个帖子 */
+export const feed_queryOne = async (
+  feed_id: string,
+  t: string,
+): Promise<ResponseType<FeedType>> => {
+  return await request({
+    url: '/feed_queryone',
+    methods: 'POST',
+    body: {feed_id},
+    token: t,
+  })
+}

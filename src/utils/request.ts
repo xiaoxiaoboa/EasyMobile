@@ -1,4 +1,4 @@
-export const base_url = 'http://192.168.1.101:8000'
+export const base_url = 'http://192.168.1.102:8000'
 
 interface RequestType<T> {
   url: string

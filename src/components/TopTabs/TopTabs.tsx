@@ -7,11 +7,10 @@ import {MyContext} from '../../context/context'
 import MyTabBar from './MyTabBar'
 import Logo from '../Logo/Logo'
 import Divider from '../Divider/Divider'
-import Profile from '../../screens/Profile'
 import Friends from '../../screens/Friends'
 import Conversation from '../../screens/Conversation'
 import Notice from '../../screens/Notice'
-import {DataType} from '../../types/index'
+import MyProfile from '../../screens/MyProfile'
 
 const {Navigator, Screen} = createMaterialTopTabNavigator()
 const TopTabs = () => {
@@ -66,7 +65,7 @@ const TopTabs = () => {
             />
             <Screen
               name="profile"
-              component={Profile}
+              component={MyProfile}
               options={{lazy: true}}
             />
             <Screen
