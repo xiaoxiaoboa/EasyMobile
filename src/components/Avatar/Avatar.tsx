@@ -1,10 +1,10 @@
 import React from 'react'
-import {StyleSheet, View, Text, Image} from 'react-native'
+import {StyleSheet, View, Pressable, Image} from 'react-native'
 import {ThemeContext} from '../../theme'
 
 interface AvatarProps {
-  src?: string
   size: number
+  src?: string
   borderRadius?: number
 }
 const Avatar: React.FC<AvatarProps> = props => {

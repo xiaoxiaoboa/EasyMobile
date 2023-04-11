@@ -82,7 +82,7 @@ const CheckNotice = () => {
         <FlatList
           data={comments}
           initialNumToRender={15}
-          contentContainerStyle={styles.flex}
+          contentContainerStyle={feed ? [] : styles.flex}
           ListEmptyComponent={
             <View style={[styles.flex, {justifyContent: 'center', alignItems: 'center'}]}>
               <Text style={{fontSize: 18, color: theme.colors.secondary}}>
@@ -99,6 +99,27 @@ const CheckNotice = () => {
                   checkNoticeDelFeed={() => navigate.goBack()}
                 />
                 <Divider />
+                {route.params.newComment && (
+                  <View style={{paddingHorizontal: 10, gap: 6}}>
+                    <Text
+                      style={{
+                        color: theme.colors.defaultTextColor,
+                        fontSize: 16,
+                        fontWeight: '500',
+                      }}>
+                      新评论
+                    </Text>
+                    <Message
+                      avatar={route.params.newComment?.source_avatar!}
+                      text={route.params.newComment?.comment!}
+                      timestamp={route.params.newComment?.source_createdAt!}
+                      nick_name={route.params.newComment?.source_nick_name!}
+                      to_id={route.params.newComment?.source_user_id!}
+                      user_id={state.user?.result.user_id}
+                    />
+                  </View>
+                )}
+                <Divider />
               </View>
             )
           }
@@ -109,11 +130,13 @@ const CheckNotice = () => {
                 text={item.comment}
                 timestamp={item.createdAt}
                 nick_name={item.nick_name}
+                to_id={item.user_id}
+                user_id={state.user?.result.user_id}
               />
             </View>
           )}
           keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}
+          // showsVerticalScrollIndicator={false}
           keyExtractor={({comment_id}) => comment_id}
         />
       </View>

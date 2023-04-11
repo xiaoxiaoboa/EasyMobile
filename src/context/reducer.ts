@@ -20,6 +20,18 @@ const reducer = (state: ReducerState, action: ActionsType) => {
       return actions.notice(state, payload)
     case ActionTypes.DELNOTICE:
       return actions.delNotice(state, payload)
+    case ActionTypes.SOCKETTONOTICE:
+      return actions.socketToNotice(state, payload)
+    case ActionTypes.DELFRIEND:
+      return actions.delFriend(state, payload)
+    case ActionTypes.CONVERSATIONS:
+      return actions.conversations(state, payload)
+    case ActionTypes.DELCONVERSATION:
+      return actions.delConversation(state, payload)
+    case ActionTypes.ADDFRIEND:
+      return actions.addFriend(state, payload)
+    case ActionTypes.READNOTICE:
+      return actions.readNotice(state, payload)
     default:
       return state
   }

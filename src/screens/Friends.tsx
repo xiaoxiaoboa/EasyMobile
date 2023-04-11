@@ -9,27 +9,19 @@ import MyModal from '../components/MyModal/MyModal'
 import {Colors} from '../theme/theme-types'
 import Icons from 'react-native-vector-icons/Ionicons'
 import AIcons from 'react-native-vector-icons/AntDesign'
-import {getFriends} from '../api/user.api'
+import {deleteFriend} from '../api/user.api'
 import {MyContext} from '../context/context'
 import {ActionTypes} from '../types/reducer'
 import myToast from '../utils/Toast'
 import {FriendType} from '../types/friend.type'
 import getUnionUrl from '../utils/getUnionUrl'
 import getTimeDiff from '../utils/getTimeDiff'
+import {useNavigation, NavigationProp} from '@react-navigation/native'
+import {RootStackParamList} from '../types/route'
 
 const Friends = () => {
   const {theme} = React.useContext(ThemeContext)
   const {state, dispatch} = React.useContext(MyContext)
-
-  React.useEffect(() => {
-    getFriends(state.user?.result.user_id!, state.user?.token!).then(val => {
-      if (val.code === 1) {
-        dispatch({type: ActionTypes.FRIENDS, payload: val.data})
-      } else {
-        myToast(val.message)
-      }
-    })
-  }, [])
 
   return (
     <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
@@ -86,9 +78,10 @@ interface RenderItemProps {
   theme: Colors
   friend: FriendType
 }
-const RenderItem = (props: RenderItemProps) => {
+const RenderItem = React.memo((props: RenderItemProps) => {
   const {friend, theme} = props
   const [modalVisible, setModalVisible] = React.useState<boolean>(false)
+  const navigate = useNavigation<NavigationProp<RootStackParamList>>()
 
   const handleModalVisible = React.useCallback((visible: boolean) => {
     setModalVisible(visible)
@@ -96,6 +89,12 @@ const RenderItem = (props: RenderItemProps) => {
   return (
     <>
       <Pressable
+        onPress={() =>
+          navigate.navigate('user_profile', {
+            user_id: friend.user_id,
+            to_userId: friend.friend_id,
+          })
+        }
         style={[styles.user]}
         android_ripple={{color: theme.clickbg}}>
         <Avatar
@@ -136,7 +135,7 @@ const RenderItem = (props: RenderItemProps) => {
       />
     </>
   )
-}
+})
 
 interface ModalContentProps {
   theme: Colors
@@ -144,7 +143,22 @@ interface ModalContentProps {
 }
 const ModalContent = React.memo((props: ModalContentProps) => {
   const {theme, friend} = props
+  const {state, dispatch} = React.useContext(MyContext)
   const dateRef = React.useRef(new Date(friend.createdAt)).current
+
+  const handleDeleteFriend = () => {
+    deleteFriend(state.user?.result.user_id!, friend.friend_id, state.user?.token!).then(
+      val => {
+        if (val.code === 1) {
+          dispatch({type: ActionTypes.DELFRIEND, payload: friend.friend_id})
+          /* 删除时如果有对话，一起删掉 */
+          if (state.conversations.find(i => i.conversation_id === friend.friend_id)) {
+            dispatch({type: ActionTypes.DELCONVERSATION, payload: friend.friend_id})
+          }
+        }
+      },
+    )
+  }
   return (
     <View>
       <View style={[styles.options_top]}>
@@ -182,6 +196,7 @@ const ModalContent = React.memo((props: ModalContentProps) => {
           </Text>
         </Pressable>
         <Pressable
+          onPress={handleDeleteFriend}
           style={[styles.option]}
           android_ripple={{color: theme.clickbg}}>
           <AIcons

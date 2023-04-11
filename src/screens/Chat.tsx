@@ -6,6 +6,13 @@ import Divider from '../components/Divider/Divider'
 import Message from '../components/Message/Message'
 import {FlatList} from 'react-native-gesture-handler'
 import MyInput from '../components/MyInput/MyInput'
+import {
+  useRoute,
+  RouteProp,
+  useNavigation,
+  NavigationProp,
+} from '@react-navigation/native'
+import {RootStackParamList} from '../types/route'
 
 const text = [
   {
@@ -20,6 +27,8 @@ const text = [
 
 const Chat = () => {
   const {theme} = React.useContext(ThemeContext)
+  const route = useRoute<RouteProp<RootStackParamList, 'chat'>>()
+  const navigate = useNavigation<NavigationProp<RootStackParamList>>()
 
   const handleGetInputValue = React.useCallback((value: string) => {
     // console.log(value)
@@ -42,7 +51,7 @@ const Chat = () => {
           />
         </Pressable>
         <Text style={[styles.topText, {color: theme.colors.defaultTextColor}]}>
-          原小新
+          {route.params.friend.nick_name}
         </Text>
       </View>
       <Divider />
@@ -74,6 +83,7 @@ const Chat = () => {
           getInputValue={handleGetInputValue}
           paddingHorizontal={10}
           paddingVertical={10}
+          editable={route.params.friend.friendship}
         />
       </View>
     </View>

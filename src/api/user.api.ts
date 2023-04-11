@@ -2,7 +2,7 @@ import {Asset} from 'react-native-image-picker'
 import {DataType, ResponseType} from '../types'
 import {AlterationCoverType, CompressedType, UserType} from '../types/user.type'
 import request, {uploadRequest} from '../utils/request'
-import {FriendType} from '../types/friend.type'
+import {FriendType, FriendsListType} from '../types/friend.type'
 import {OtherNoticeType} from '../types/notice.type'
 
 /* 登录 */
@@ -75,7 +75,7 @@ export const alterationAvatar = async (
 export const getFriends = (
   user_id: string,
   t: string,
-): Promise<ResponseType<FriendType[]>> => {
+): Promise<ResponseType<FriendsListType>> => {
   return request({
     url: '/friends',
     methods: 'POST',
@@ -119,6 +119,19 @@ export const updateNotice = async (
     url: '/read',
     methods: 'POST',
     body: {source_id, notice_id},
+    token: t,
+  })
+}
+/* 删除好友 */
+export const deleteFriend = async (
+  user_id: string,
+  friend_id: string,
+  t: string,
+): Promise<ResponseType<void>> => {
+  return await request({
+    url: '/del_friend',
+    methods: 'POST',
+    body: {user_id, friend_id},
     token: t,
   })
 }

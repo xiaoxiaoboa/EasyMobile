@@ -1,8 +1,9 @@
-import {DataType} from '../index'
+import {DataType, MySocket} from '../index'
 import {FeedType} from '../feed.type'
 import {UserType} from '../user.type'
 import {FriendType} from '../friend.type'
 import {OtherNoticeType} from '../notice.type'
+import {ConversationType} from '../chat.type'
 
 export interface createContextType {
   state: ReducerState
@@ -15,6 +16,8 @@ export interface ReducerState {
   friends: FriendType[]
   profileFeeds: FeedType[]
   notice: OtherNoticeType[]
+  socket: MySocket | undefined
+  conversations: ConversationType[]
 }
 
 export enum ActionTypes {
@@ -26,6 +29,12 @@ export enum ActionTypes {
   PROFILEFEEDS = 'profileFeeds',
   NOTICE = 'notice',
   DELNOTICE = 'delNotice',
+  SOCKETTONOTICE = 'socketToNotice',
+  DELFRIEND = 'delFriend',
+  CONVERSATIONS = 'conversations',
+  DELCONVERSATION='delConversation',
+  ADDFRIEND='addFriend',
+  READNOTICE='readNotice'
 }
 
 export type ActionMap<M extends {[index: string]: any}> = {
@@ -48,6 +57,12 @@ export interface ReducerPaylodType {
   [ActionTypes.PROFILEFEEDS]: FeedType[]
   [ActionTypes.NOTICE]: OtherNoticeType[]
   [ActionTypes.DELNOTICE]: string
+  [ActionTypes.SOCKETTONOTICE]: OtherNoticeType
+  [ActionTypes.DELFRIEND]: string
+  [ActionTypes.CONVERSATIONS]: ConversationType
+  [ActionTypes.DELCONVERSATION]: string
+  [ActionTypes.ADDFRIEND]: FriendType
+  [ActionTypes.READNOTICE]: string
 }
 
 export type ActionsType = ActionMap<ReducerPaylodType>[keyof ActionMap<ReducerPaylodType>]

@@ -28,7 +28,7 @@ export type ConversationType = {
   name: string
   user_name: string
   msg: string
-  msg_type:string
+  msg_type: Message_type
   isGroup: boolean
   msg_length: number
 }

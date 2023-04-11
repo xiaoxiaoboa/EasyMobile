@@ -10,8 +10,8 @@ import Avatar from '../components/Avatar/Avatar'
 import MyModal from '../components/MyModal/MyModal'
 import {queryNotice, updateNotice} from '../api/user.api'
 import {MyContext} from '../context/context'
-import {ActionTypes} from '../types/reducer'
-import {OtherNoticeType} from '../types/notice.type'
+import {ActionTypes, ActionsType} from '../types/reducer'
+import {Notice_type, OtherNoticeType} from '../types/notice.type'
 import getUnionUrl from '../utils/getUnionUrl'
 import getTimeDiff from '../utils/getTimeDiff'
 import myToast from '../utils/Toast'
@@ -20,14 +20,6 @@ const Notice = () => {
   const {theme} = React.useContext(ThemeContext)
   const {state, dispatch} = React.useContext(MyContext)
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
-
-  React.useEffect(() => {
-    queryNotice(state.user?.result.user_id!, state.user?.token!).then(val => {
-      if (val.code === 1) {
-        dispatch({type: ActionTypes.NOTICE, payload: val.data})
-      }
-    })
-  }, [])
 
   const hancleCleanNotice = React.useCallback(
     (notice: OtherNoticeType) => {
@@ -80,17 +72,58 @@ interface RenderItemProps {
 }
 const RenderItem = React.memo((props: RenderItemProps) => {
   const {theme, navigation, notice, hancleCleanNotice} = props
+  const {state, dispatch} = React.useContext(MyContext)
   const [modalVisible, setModalVisible] = React.useState<boolean>(false)
   const handleModalVisible = React.useCallback(() => {
     setModalVisible(p => !p)
   }, [])
+  const handleCheck = () => {
+    let newComment = undefined
+    switch (notice.type) {
+      case Notice_type.FRIENDREQUEST:
+        navigation.navigate('user_profile', {
+          user_id: notice.target_id,
+          to_userId: notice.source.user_id,
+          notice: notice.done === 0 ? notice : undefined,
+        })
+        break
+      case Notice_type.RESOLEV:
+      case Notice_type.REJECT:
+        updateNotice({notice_id: notice.notice_id}, state.user?.token!).then(val => {
+          if (val.code === 1) {
+            dispatch({type: ActionTypes.READNOTICE, payload: notice.notice_id})
+          }
+        })
+        break
+      case Notice_type.FEEDCOMMENT:
+        newComment = {
+          source_avatar: notice.source.avatar,
+          comment: notice.comment_msg,
+          source_nick_name: notice.source.nick_name,
+          source_createdAt: notice.createdAt,
+          source_user_id: notice.source.user_id,
+        }
+        navigation.navigate('checkNotice', {
+          feed_id: notice.feed_id!,
+          newComment,
+        })
+        break
+      case Notice_type.FEEDLIKE:
+        break
+      default:
+        break
+    }
+  }
 
   return (
     <View>
       <Pressable
-        onPress={() => navigation.navigate('checkNotice', {feed_id: notice.feed_id!})}
+        onPress={handleCheck}
         onLongPress={handleModalVisible}
-        style={[styles.user]}
+        style={[
+          styles.user,
+          {backgroundColor: notice.done === 0 ? theme.unreadNotice : 'transparent'},
+        ]}
         android_ripple={{color: theme.clickbg}}>
         <Avatar
           src={getUnionUrl(notice.source?.avatar)}
@@ -174,5 +207,12 @@ const styles = StyleSheet.create({
   },
   user_message: {
     width: '80%',
+  },
+  sign: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#42b72a',
+    elevation: 20,
   },
 })

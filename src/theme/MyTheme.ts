@@ -17,6 +17,7 @@ const MyColors: {
     messagebg: '#f1f2f6',
     inputbg: '#f1f2f6',
     clickbg: '#ececed',
+    unreadNotice: '#D4E6F1',
   },
   dark: {
     isDark: true,
@@ -31,6 +32,7 @@ const MyColors: {
     messagebg: '#343537',
     inputbg: '#3a3b3d',
     clickbg: '#4d4d51',
+    unreadNotice: '#2E4053',
   },
 }
 

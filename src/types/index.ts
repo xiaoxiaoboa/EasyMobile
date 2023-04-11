@@ -1,3 +1,4 @@
+import { Socket } from "socket.io-client"
 import { UserType } from "./user.type"
 
 export interface ResponseType<T> {
@@ -11,8 +12,8 @@ export interface DataType {
   token: string
 }
 
-// export interface MySocket {
-//   chat: Socket
-//   group: Socket
-//   notice: Socket
-// }
+export interface MySocket {
+  chat: Socket
+  group: Socket
+  notice: Socket
+}

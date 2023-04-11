@@ -22,6 +22,7 @@ export interface Colors {
   messagebg: string
   inputbg: string
   clickbg: string
+  unreadNotice:string
 }
 
 export type Light = Colors

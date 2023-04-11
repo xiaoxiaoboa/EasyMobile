@@ -9,10 +9,16 @@ import AIcons from 'react-native-vector-icons/AntDesign'
 
 import {RootStackParamList} from '../types/route'
 import {useNavigation, NavigationProp} from '@react-navigation/native'
+import {MyContext} from '../context/context'
+import {ConversationType} from '../types/chat.type'
+import getUnionUrl from '../utils/getUnionUrl'
+import {FriendType} from '../types/friend.type'
+import {ActionTypes, ActionsType} from '../types/reducer'
 
 const Conversation = () => {
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
   const {theme} = React.useContext(ThemeContext)
+  const {state, dispatch} = React.useContext(MyContext)
 
   return (
     <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
@@ -22,16 +28,18 @@ const Conversation = () => {
           paddingHorizontal={10}
         />
         <FlatList
-          data={Array(1)
-            .fill(0)
-            .map((item, index) => index + 1)}
+          data={state.conversations}
           maxToRenderPerBatch={10}
           showsVerticalScrollIndicator={false}
           initialNumToRender={10}
-          renderItem={() => (
+          keyExtractor={({conversation_id}) => conversation_id}
+          renderItem={({item}) => (
             <RenderItem
               theme={theme.colors}
               navigation={navigate}
+              conversation={item}
+              friends={state.friends}
+              dispatch={dispatch}
             />
           )}
         />
@@ -43,32 +51,48 @@ const Conversation = () => {
 interface RenderItemProps {
   theme: Colors
   navigation: NavigationProp<RootStackParamList>
+  conversation: ConversationType
+  friends: FriendType[]
+  dispatch: React.Dispatch<ActionsType>
 }
 const RenderItem = (props: RenderItemProps) => {
-  const {theme, navigation} = props
+  const {theme, navigation, conversation, friends, dispatch} = props
   const [modalVisible, setModalVisible] = React.useState<boolean>(false)
+
   const handleModalVisible = React.useCallback(() => {
     setModalVisible(p => !p)
   }, [])
 
+  const handleTalk = () => {
+    const findFriend = friends.find(i => i.friend_id === conversation.conversation_id)
+    navigation.navigate('chat', {friend: findFriend!})
+  }
+
+  const handleRemoveConversation = () => {
+    dispatch({type: ActionTypes.DELCONVERSATION, payload: conversation.conversation_id})
+    handleModalVisible()
+  }
+
   return (
     <View>
       <Pressable
-        onPress={() => navigation.navigate('chat')}
+        onPress={handleTalk}
         onLongPress={handleModalVisible}
         style={[styles.user]}
         android_ripple={{color: theme.clickbg}}>
         <Avatar
-          src={undefined}
+          src={getUnionUrl(conversation.avatar)}
           size={60}
         />
         <View>
-          <Text style={[styles.user_name, {color: theme.defaultTextColor}]}>原小新</Text>
+          <Text style={[styles.user_name, {color: theme.defaultTextColor}]}>
+            {conversation.name}
+          </Text>
           <Text
             numberOfLines={1}
             ellipsizeMode="tail"
             style={[styles.user_message, {color: theme.secondary}]}>
-            hellokajbflabglakjbrg.masndbgljahbgaksb.dbvmcbvjhbd
+            {conversation.msg}
           </Text>
         </View>
       </Pressable>
@@ -79,6 +103,7 @@ const RenderItem = (props: RenderItemProps) => {
         children={
           <View>
             <Pressable
+              onPress={handleRemoveConversation}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',

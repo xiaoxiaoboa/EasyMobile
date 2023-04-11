@@ -34,7 +34,7 @@ const MyInput = React.memo((props: MyInputProps) => {
     setInputValue(p => p + emoji)
   }
   const handleOpenEmoji = React.useCallback(() => {
-    setOpenEmoji(p => !p)
+    editable && setOpenEmoji(p => !p)
   }, [])
   const handleEndEditing = (text: string) => {
     getInputValue && getInputValue(text)

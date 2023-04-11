@@ -1,29 +1,40 @@
 import React from 'react'
-import {View, StyleSheet, Text, Dimensions} from 'react-native'
+import {View, StyleSheet, Text, Pressable} from 'react-native'
 import Avatar from '../Avatar/Avatar'
 import {ThemeContext} from '../../theme'
 import getUnionUrl from '../../utils/getUnionUrl'
 import getTimeDiff from '../../utils/getTimeDiff'
+import {useNavigation, NavigationProp} from '@react-navigation/native'
+import {RootStackParamList} from '../../types/route'
 
 interface MessageProps {
   avatar: string
   timestamp: string
   text: string
+  to_id?: string
+  user_id?: string
   me?: boolean
   nick_name?: string
 }
 const Message = React.memo((props: MessageProps) => {
-  const {me, text, avatar, timestamp, nick_name} = props
+  const {me, text, avatar, timestamp, nick_name, to_id, user_id} = props
   const {theme} = React.useContext(ThemeContext)
+  const navigate = useNavigation<NavigationProp<RootStackParamList>>()
+
+  const handleNavigate = () => {
+    if (to_id && user_id) {
+      navigate.navigate('user_profile', {to_userId: to_id, user_id})
+    }
+  }
 
   return (
     <View style={[styles.container, {flexDirection: me ? 'row-reverse' : 'row'}]}>
-      <View>
+      <Pressable onPress={handleNavigate}>
         <Avatar
           src={getUnionUrl(avatar)}
           size={44}
         />
-      </View>
+      </Pressable>
       <View style={[styles.message_wrapper]}>
         <View style={[styles.message, {backgroundColor: theme.colors.messagebg}]}>
           <Text

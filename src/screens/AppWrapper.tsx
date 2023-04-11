@@ -4,9 +4,12 @@ import {SafeAreaView} from 'react-native-safe-area-context'
 import {ThemeContext} from '../theme'
 import Routes from '../routes'
 import MyModal from '../components/MyModal/MyModal'
+import useSocketListener from '../hooks/useSocketListener'
 
 const AppWrapper = () => {
   const {theme} = React.useContext(ThemeContext)
+  useSocketListener()
+
   return (
     <View style={{flex: 1}}>
       <SafeAreaView style={{flex: 1}}>

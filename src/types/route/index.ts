@@ -1,10 +1,12 @@
 import {DataType} from '..'
+import {FriendType} from '../friend.type'
+import { OtherNoticeType } from '../notice.type'
 
 export type RootStackParamList = {
   root: undefined
   postting: undefined
   comment: CommentParams
-  chat: undefined
+  chat: ChatParams
   conversation: undefined
   notice: undefined
   login: undefined
@@ -21,8 +23,20 @@ type CommentParams = {
 type ProfileParams = {
   user_id: string
   to_userId: string
+  notice?: OtherNoticeType
 }
 
 type CheckNoticeParams = {
   feed_id: string
+  newComment?: {
+    comment?: string
+    source_avatar?: string
+    source_nick_name?: string
+    source_createdAt?: string
+    source_user_id?: string
+  }
+}
+
+type ChatParams = {
+  friend: FriendType
 }
