@@ -26,6 +26,7 @@ import {ActionTypes} from '../types/reducer'
 import {ConversationType, Message_type} from '../types/chat.type'
 import {Notice_type} from '../types/notice.type'
 import {FriendType} from '../types/friend.type'
+import {useNetInfo} from '@react-native-community/netinfo'
 
 const UserProfile = () => {
   const {theme} = React.useContext(ThemeContext)
@@ -36,27 +37,30 @@ const UserProfile = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'user_profile'>>()
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
   const [userInfo, setUserInfo] = React.useState<UserType | undefined>(undefined)
+  const {isInternetReachable} = useNetInfo()
 
   React.useEffect(() => {
     queryUser(route.params.to_userId, state.user?.token!).then(
       val => val.code === 1 && setUserInfo(val.data),
     )
-  }, [route.params.to_userId])
+  }, [route.params.to_userId, isInternetReachable])
 
   /* 获取用户帖子 */
-  const getMyFeeds = () => {
-    feeds_query(
-      route.params.to_userId,
-      limitRef.current,
-      offsetRef.current,
-      state.user?.token!,
-    ).then(val => {
-      if (val.code === 1) {
-        setFeeds(p => [...p, ...val.data])
-        offsetRef.current += limitRef.current
-      }
-    })
-  }
+  const getMyFeeds = React.useCallback(() => {
+    if (isInternetReachable) {
+      feeds_query(
+        route.params.to_userId,
+        limitRef.current,
+        offsetRef.current,
+        state.user?.token!,
+      ).then(val => {
+        if (val.code === 1) {
+          setFeeds(p => [...p, ...val.data])
+          offsetRef.current += limitRef.current
+        }
+      })
+    }
+  }, [isInternetReachable])
 
   return (
     <View
@@ -89,9 +93,17 @@ const UserProfile = () => {
       <FlatList
         data={feeds}
         initialNumToRender={3}
+        maxToRenderPerBatch={3}
         onEndReachedThreshold={0.3}
         onEndReached={getMyFeeds}
         keyExtractor={({feed_id}) => feed_id}
+        ListEmptyComponent={
+          <View style={[styles.empty]}>
+            <Text style={{color: theme.colors.secondary}}>
+              {isInternetReachable ? 'ta还没有发帖子哟~' : '你没有连接网络哎，这怎么玩儿'}
+            </Text>
+          </View>
+        }
         ListHeaderComponent={
           <Header
             userInfo={userInfo}
@@ -114,6 +126,7 @@ const Header = React.memo((props: HeaderProps) => {
   const {theme} = React.useContext(ThemeContext)
   const {state, dispatch} = React.useContext(MyContext)
   const route = useRoute<RouteProp<RootStackParamList, 'user_profile'>>()
+  const {isInternetReachable} = useNetInfo()
 
   const findFriend = React.useMemo(
     () => state.friends.find(i => i.friend_id === route.params.to_userId),
@@ -156,6 +169,7 @@ const Header = React.memo((props: HeaderProps) => {
         msg_length: 0,
         msg_type: Message_type.TEXT,
         user_name: findFriend?.nick_name!,
+        msg_createdAt: '',
       }
       dispatch({type: ActionTypes.CONVERSATIONS, payload: newConversation})
     }
@@ -224,6 +238,11 @@ const Header = React.memo((props: HeaderProps) => {
 
   return (
     <View style={[{backgroundColor: theme.colors.background}]}>
+      {!isInternetReachable && (
+        <View style={[styles.noNetwork]}>
+          <Text style={{color: '#FFFFFF'}}>没有网络连接，正在重试...</Text>
+        </View>
+      )}
       {/* 背景图 */}
       <View>
         <Image
@@ -453,6 +472,17 @@ export default UserProfile
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  empty: {
+    flex: 1,
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noNetwork: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fb8c8c',
   },
   top: {
     paddingTop: 6,

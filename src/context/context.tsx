@@ -3,14 +3,16 @@ import reducer from './reducer'
 import {ActionTypes, createContextType, ReducerState} from '../types/reducer'
 import {getLocalData, storage} from '../utils/getLocalData'
 import {io} from 'socket.io-client'
-import {getFriends, queryNotice} from '../api/user.api'
+import {getFriends, queryMessageNotice, queryNotice} from '../api/user.api'
 import findNoFriend from '../utils/findNoFriend'
+import NetInfo from '@react-native-community/netinfo'
+import {feeds_all} from '../api/feed.api'
 
 const inintSocket = () =>
   getLocalData('user') && {
-    chat: io('ws://192.168.1.102:8000/chat', {autoConnect: true}),
-    group: io('ws://192.168.1.102:8000/group_chat', {autoConnect: true}),
-    notice: io('ws://192.168.1.102:8000', {autoConnect: true}),
+    chat: io('ws://192.168.1.104:8000/chat', {autoConnect: true}),
+    group: io('ws://192.168.1.104:8000/group_chat'),
+    notice: io('ws://192.168.1.104:8000'),
   }
 
 const initialValue: ReducerState = {
@@ -21,6 +23,9 @@ const initialValue: ReducerState = {
   notice: getLocalData('notice') || [],
   socket: inintSocket(),
   conversations: getLocalData('conversations') || [],
+  current_talk: undefined,
+  unread_messages: [],
+  groups: [],
 }
 
 export const MyContext = React.createContext<createContextType>({
@@ -31,8 +36,65 @@ export const MyContext = React.createContext<createContextType>({
 type MyContextProviderProps = {children: React.ReactNode}
 export const MyContextProvider = ({children}: MyContextProviderProps) => {
   const [state, dispatch] = React.useReducer(reducer, initialValue)
+  const [isConnected, setIsConnected] = React.useState<boolean>(false)
 
-  /* socket连接 */
+  /* 启动后初始化值 */
+  const getData = React.useCallback(() => {
+    if (!state.user) return
+    /* 获取通知数据 */
+    queryNotice(state.user?.result.user_id!, state.user?.token!).then(val => {
+      if (val.code === 1) {
+        dispatch({type: ActionTypes.NOTICE, payload: val.data})
+      }
+    })
+    /* 好友列表 */
+    getFriends(state.user?.result.user_id!, state.user?.token!).then(val => {
+      if (val.code === 1) {
+        const newFriendList = findNoFriend(val.data)
+        dispatch({type: ActionTypes.FRIENDS, payload: newFriendList})
+      }
+    })
+    /* 未读聊天消息 */
+    queryMessageNotice(state.user.result.user_id!, '1', state.user.token!).then(val => {
+      if (val.code === 1) {
+        dispatch({type: ActionTypes.UNREADMESSAGES, payload: val.data})
+      }
+    })
+  }, [state.user])
+
+  /* 监听网络变化 */
+  React.useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(netState => {
+      if (netState.isInternetReachable) {
+        setIsConnected(true)
+      } else {
+        setIsConnected(false)
+      }
+    })
+    return () => {
+      unsubscribe()
+    }
+  }, [])
+
+  /* 根据网络变化改变数据 */
+  React.useMemo(() => {
+    if (isConnected) {
+      /* 有网络就连接socket */
+      state.socket?.chat.connect()
+      state.socket?.group.connect()
+      state.socket?.notice.connect()
+
+      /* 获取用户数据 */
+      getData()
+    } else {
+      /* 没有网络就断开socket */
+      state.socket?.chat.disconnect()
+      state.socket?.group.disconnect()
+      state.socket?.notice.disconnect()
+    }
+  }, [isConnected])
+
+  /* socket连接后 */
   React.useEffect(() => {
     if (state.user) {
       state.socket?.chat.on('connect', () => {
@@ -58,24 +120,6 @@ export const MyContextProvider = ({children}: MyContextProviderProps) => {
       state.socket?.group.off('connect')
       state.socket?.notice.off('connect')
     }
-  }, [state.user])
-
-  /* 启动后初始化值 */
-  React.useEffect(() => {
-    if (!state.user) return
-    /* 获取通知数据 */
-    queryNotice(state.user?.result.user_id!, state.user?.token!).then(val => {
-      if (val.code === 1) {
-        dispatch({type: ActionTypes.NOTICE, payload: val.data})
-      }
-    })
-    /* 好友列表 */
-    getFriends(state.user?.result.user_id!, state.user?.token!).then(val => {
-      if (val.code === 1) {
-        const newFriendList = findNoFriend(val.data)
-        dispatch({type: ActionTypes.FRIENDS, payload: newFriendList})
-      }
-    })
   }, [state.user])
 
   /* 变化存储 */

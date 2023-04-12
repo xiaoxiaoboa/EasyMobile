@@ -21,6 +21,7 @@ const Message = React.memo((props: MessageProps) => {
   const {theme} = React.useContext(ThemeContext)
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
 
+  /* 跳转到用户主页 */
   const handleNavigate = () => {
     if (to_id && user_id) {
       navigate.navigate('user_profile', {to_userId: to_id, user_id})
@@ -37,19 +38,26 @@ const Message = React.memo((props: MessageProps) => {
       </Pressable>
       <View style={[styles.message_wrapper]}>
         <View style={[styles.message, {backgroundColor: theme.colors.messagebg}]}>
-          <Text
-            ellipsizeMode="tail"
-            style={[styles.name, {color: theme.colors.primary, maxWidth: '100%'}]}>
-            {nick_name}
-          </Text>
+          {nick_name && (
+            <Text
+              ellipsizeMode="tail"
+              style={[styles.name, {color: theme.colors.primary, maxWidth: '100%'}]}>
+              {nick_name}
+            </Text>
+          )}
+
           <Text
             selectable
             style={[{color: theme.colors.defaultTextColor, fontSize: 18}]}>
             {text}
           </Text>
         </View>
-        <Text style={[styles.timestamp, {color: theme.colors.secondary}]}>
-          {getTimeDiff(timestamp)}
+        <Text
+          style={[
+            styles.timestamp,
+            {color: theme.colors.secondary, textAlign: me ? 'right' : 'left'},
+          ]}>
+          {getTimeDiff(timestamp, 'time')}
         </Text>
       </View>
     </View>
@@ -69,7 +77,7 @@ const styles = StyleSheet.create({
     maxWidth: '75%',
   },
   message: {
-    paddingVertical: 6,
+    paddingVertical: 10,
     paddingRight: 10,
     paddingLeft: 10,
     borderRadius: 10,

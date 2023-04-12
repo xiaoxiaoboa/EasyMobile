@@ -1,6 +1,6 @@
 import {DataType} from '..'
 import {FriendType} from '../friend.type'
-import { OtherNoticeType } from '../notice.type'
+import {OtherNoticeType} from '../notice.type'
 
 export type RootStackParamList = {
   root: undefined
@@ -39,4 +39,12 @@ type CheckNoticeParams = {
 
 type ChatParams = {
   friend: FriendType
+}
+
+export type TabBarParams = {
+  home: undefined
+  conversation: undefined
+  friends: undefined
+  profile: undefined
+  notice: undefined
 }

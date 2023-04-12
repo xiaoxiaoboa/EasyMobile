@@ -26,28 +26,32 @@ import {ActionTypes} from '../types/reducer'
 import {storage} from '../utils/getLocalData'
 import myToast from '../utils/Toast'
 import {useNavigation, NavigationProp} from '@react-navigation/native'
+import {useNetInfo} from '@react-native-community/netinfo'
 
 const MyProfile = () => {
   const {theme} = React.useContext(ThemeContext)
   const {state, dispatch} = React.useContext(MyContext)
   const limitRef = React.useRef<number>(5)
   const offsetRef = React.useRef<number>(0)
+  const {isInternetReachable} = useNetInfo()
 
   /* 获取用户帖子 */
-  const getMyFeeds = () => {
-    feeds_query(
-      state.user?.result.user_id!,
-      limitRef.current,
-      offsetRef.current,
-      state.user?.token!,
-    ).then(val => {
-      if (val.code === 1) {
-        dispatch({type: ActionTypes.PROFILEFEEDS, payload: val.data})
+  const getMyFeeds = React.useCallback(() => {
+    if (isInternetReachable) {
+      feeds_query(
+        state.user?.result.user_id!,
+        limitRef.current,
+        offsetRef.current,
+        state.user?.token!,
+      ).then(val => {
+        if (val.code === 1) {
+          dispatch({type: ActionTypes.PROFILEFEEDS, payload: val.data})
 
-        offsetRef.current += limitRef.current
-      }
-    })
-  }
+          offsetRef.current += limitRef.current
+        }
+      })
+    }
+  }, [isInternetReachable])
 
   return (
     <View
@@ -58,13 +62,24 @@ const MyProfile = () => {
         },
       ]}>
       <FlatList
+        extraData={isInternetReachable}
         data={state.profileFeeds}
         initialNumToRender={3}
+        maxToRenderPerBatch={3}
         onEndReachedThreshold={0.3}
         onEndReached={getMyFeeds}
         keyExtractor={({feed_id}) => feed_id}
         ListHeaderComponent={Header}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={[styles.empty]}>
+            <Text style={{color: theme.colors.secondary}}>
+              {isInternetReachable
+                ? '还没有帖子哟，发表一个吧~'
+                : '你没有连接网络哎，这怎么玩儿'}
+            </Text>
+          </View>
+        }
         renderItem={({item}) => <FeedCard feed={item} />}
       />
     </View>
@@ -82,6 +97,7 @@ const Header = React.memo(() => {
   const [avatarUri, setAvatarUri] = React.useState<Asset>()
   const [backgroundUri, setBackgroundUri] = React.useState<Asset>()
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
+  const {isInternetReachable} = useNetInfo()
 
   /* 打开modal */
   const handleBackgroundModal = React.useCallback((visible: boolean) => {
@@ -111,6 +127,11 @@ const Header = React.memo(() => {
 
   return (
     <View style={[styles.top, {backgroundColor: theme.colors.background}]}>
+      {!isInternetReachable && (
+        <View style={[styles.noNetwork]}>
+          <Text style={{color: '#FFFFFF'}}>没有网络连接，正在重试...</Text>
+        </View>
+      )}
       {/* 背景图 */}
       <View>
         <Image
@@ -531,7 +552,17 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 54,
   },
-  top: {
+  noNetwork: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fb8c8c',
+  },
+  top: {},
+  empty: {
+    flex: 1,
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatar_wrapper: {
     alignItems: 'flex-start',

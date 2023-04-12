@@ -14,6 +14,7 @@ import {ConversationType} from '../types/chat.type'
 import getUnionUrl from '../utils/getUnionUrl'
 import {FriendType} from '../types/friend.type'
 import {ActionTypes, ActionsType} from '../types/reducer'
+import getTimeDiff from '../utils/getTimeDiff'
 
 const Conversation = () => {
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
@@ -65,6 +66,15 @@ const RenderItem = (props: RenderItemProps) => {
 
   const handleTalk = () => {
     const findFriend = friends.find(i => i.friend_id === conversation.conversation_id)
+    dispatch({type: ActionTypes.CURRENTTALK, payload: conversation})
+    dispatch({
+      type: ActionTypes.UPDATECONVERSATIONMSGLENGTH,
+      payload: conversation.conversation_id,
+    })
+    dispatch({
+      type: ActionTypes.UPDATEUNREADMESSAGE,
+      payload: conversation.conversation_id,
+    })
     navigation.navigate('chat', {friend: findFriend!})
   }
 
@@ -72,7 +82,6 @@ const RenderItem = (props: RenderItemProps) => {
     dispatch({type: ActionTypes.DELCONVERSATION, payload: conversation.conversation_id})
     handleModalVisible()
   }
-
   return (
     <View>
       <Pressable
@@ -84,16 +93,31 @@ const RenderItem = (props: RenderItemProps) => {
           src={getUnionUrl(conversation.avatar)}
           size={60}
         />
-        <View>
-          <Text style={[styles.user_name, {color: theme.defaultTextColor}]}>
+        <View style={{flex: 1}}>
+          <Text
+            ellipsizeMode="tail"
+            numberOfLines={1}
+            style={[styles.user_name, {color: theme.defaultTextColor}]}>
             {conversation.name}
           </Text>
-          <Text
-            numberOfLines={1}
-            ellipsizeMode="tail"
-            style={[styles.user_message, {color: theme.secondary}]}>
-            {conversation.msg}
+          {conversation.msg_length > 0 && (
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={[styles.user_message, {color: theme.secondary}]}>
+              {conversation.msg}
+            </Text>
+          )}
+        </View>
+        <View style={styles.timestamp}>
+          <Text style={{color: theme.secondary}}>
+            {getTimeDiff(conversation.msg_createdAt, 'time')}
           </Text>
+          {conversation.msg_length > 0 && (
+            <View style={[styles.message_length, {backgroundColor: theme.primary}]}>
+              <Text style={{color: '#FFFFFF'}}>{conversation.msg_length}</Text>
+            </View>
+          )}
         </View>
       </Pressable>
       <MyModal
@@ -150,5 +174,18 @@ const styles = StyleSheet.create({
   },
   user_message: {
     width: '80%',
+  },
+  timestamp: {
+    alignItems: 'center',
+    marginLeft: 'auto',
+    marginRight: 10,
+    gap: 4,
+  },
+  message_length: {
+    paddingHorizontal: 5,
+    paddingVertical: 0,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })

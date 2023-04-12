@@ -3,7 +3,7 @@ import {DataType, ResponseType} from '../types'
 import {AlterationCoverType, CompressedType, UserType} from '../types/user.type'
 import request, {uploadRequest} from '../utils/request'
 import {FriendType, FriendsListType} from '../types/friend.type'
-import {OtherNoticeType} from '../types/notice.type'
+import {OtherNoticeType, UnReadMessageType} from '../types/notice.type'
 
 /* 登录 */
 export const sign_in = async (
@@ -133,5 +133,19 @@ export const deleteFriend = async (
     methods: 'POST',
     body: {user_id, friend_id},
     token: t,
+  })
+}
+
+/* 查询未读消息的notice */
+export const queryMessageNotice = async (
+  user_id: string,
+  type: string,
+  t: string
+): Promise<ResponseType<UnReadMessageType[]>> => {
+  return await request({
+    url: "/notice_message",
+    methods: "POST",
+    body: { user_id, type },
+    token: t
   })
 }

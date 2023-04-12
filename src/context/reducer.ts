@@ -32,6 +32,20 @@ const reducer = (state: ReducerState, action: ActionsType) => {
       return actions.addFriend(state, payload)
     case ActionTypes.READNOTICE:
       return actions.readNotice(state, payload)
+    case ActionTypes.UNREADMESSAGES:
+      return actions.unread_messages(state, payload)
+    case ActionTypes.ADDUNREADMESSAGE:
+      return actions.addUnReadMessage(state, payload)
+    case ActionTypes.NEWCONVERSATION:
+      return actions.newConversation(state, payload)
+    case ActionTypes.CONVERSATIONTOTOP:
+      return actions.conversationToTop(state, payload)
+    case ActionTypes.UPDATECONVERSATIONMSGLENGTH:
+      return actions.updateConversationMsgLength(state, payload)
+    case ActionTypes.CURRENTTALK:
+      return actions.current_talk(state, payload)
+    case ActionTypes.UPDATEUNREADMESSAGE:
+      return actions.updateUnReadMessage(state, payload)
     default:
       return state
   }

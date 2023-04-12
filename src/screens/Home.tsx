@@ -13,6 +13,7 @@ import {MyContext} from '../context/context'
 import getUnionUrl from '../utils/getUnionUrl'
 import {feeds_all} from '../api/feed.api'
 import {ActionTypes} from '../types/reducer'
+import {useNetInfo} from '@react-native-community/netinfo'
 
 export type imagesType = {id: string; uri: string}
 export const images: imagesType[] = [
@@ -43,16 +44,19 @@ const Home = () => {
   const {state, dispatch} = React.useContext(MyContext)
   const limitRef = React.useRef<number>(5)
   const offsetRef = React.useRef<number>(0)
+  const {isInternetReachable} = useNetInfo()
 
   /* 获取帖子 */
-  const getFeeds = () => {
-    feeds_all(limitRef.current, offsetRef.current).then(val => {
-      if (val.code === 1) {
-        dispatch({type: ActionTypes.GETHOMEFEEDS, payload: val.data})
-        offsetRef.current += limitRef.current
-      }
-    })
-  }
+  const getFeeds = React.useCallback(() => {
+    if (isInternetReachable) {
+      feeds_all(limitRef.current, offsetRef.current).then(val => {
+        if (val.code === 1) {
+          dispatch({type: ActionTypes.GETHOMEFEEDS, payload: val.data})
+          offsetRef.current += limitRef.current
+        }
+      })
+    }
+  }, [isInternetReachable])
 
   return (
     <View style={[styles.container, {backgroundColor: theme.colors.homebg}]}>
@@ -63,7 +67,21 @@ const Home = () => {
           maxToRenderPerBatch={3}
           onEndReachedThreshold={0.3}
           onEndReached={getFeeds}
-          ListHeaderComponent={() => <HeaderComponent theme={theme.colors} />}
+          ListEmptyComponent={
+            <View style={[styles.empty]}>
+              <Text style={{color: theme.colors.secondary}}>
+                {isInternetReachable
+                  ? '还没有帖子哟，发表一个吧~'
+                  : '你没有连接网络哎，这怎么玩儿'}
+              </Text>
+            </View>
+          }
+          ListHeaderComponent={() => (
+            <HeaderComponent
+              theme={theme.colors}
+              isInternetReachable={isInternetReachable}
+            />
+          )}
           showsVerticalScrollIndicator={false}
           renderItem={({item, index}) => <FeedCard feed={item} />}
           keyExtractor={({feed_id}) => feed_id}
@@ -74,12 +92,12 @@ const Home = () => {
 }
 interface HeaderComponentProps {
   theme: Colors
+  isInternetReachable: boolean | null
 }
-const HeaderComponent = (props: HeaderComponentProps) => {
+const HeaderComponent = React.memo((props: HeaderComponentProps) => {
+  const {theme, isInternetReachable} = props
   const {state} = React.useContext(MyContext)
-  const {theme} = props
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
-
   return (
     <View>
       {!state.user && (
@@ -108,6 +126,11 @@ const HeaderComponent = (props: HeaderComponentProps) => {
           </Pressable>
         </View>
       )}
+      {!isInternetReachable && (
+        <View style={[styles.noNetwork]}>
+          <Text style={{color: '#FFFFFF'}}>没有网络连接，正在重试...</Text>
+        </View>
+      )}
 
       <View style={[styles.homeTop, {backgroundColor: theme.background}]}>
         <Avatar
@@ -129,7 +152,7 @@ const HeaderComponent = (props: HeaderComponentProps) => {
       </View>
     </View>
   )
-}
+})
 
 export default Home
 
@@ -141,6 +164,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+  },
+  empty: {
+    flex: 1,
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noNetwork: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fb8c8c',
   },
   homeTop: {
     flexDirection: 'row',

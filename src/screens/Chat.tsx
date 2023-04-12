@@ -1,5 +1,5 @@
 import React from 'react'
-import {View, StyleSheet, Text, Pressable} from 'react-native'
+import {View, StyleSheet, Text, Pressable, DrawerLayoutAndroidBase} from 'react-native'
 import {ThemeContext} from '../theme'
 import FIcons from 'react-native-vector-icons/Feather'
 import Divider from '../components/Divider/Divider'
@@ -13,6 +13,10 @@ import {
   NavigationProp,
 } from '@react-navigation/native'
 import {RootStackParamList} from '../types/route'
+import {MessageType, Message_type} from '../types/chat.type'
+import {MyContext} from '../context/context'
+import getTimeDiff from '../utils/getTimeDiff'
+import {updateNotice} from '../api/user.api'
 
 const text = [
   {
@@ -26,12 +30,73 @@ const text = [
 ]
 
 const Chat = () => {
+  const {state, dispatch} = React.useContext(MyContext)
   const {theme} = React.useContext(ThemeContext)
   const route = useRoute<RouteProp<RootStackParamList, 'chat'>>()
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
+  const [messages, setMessages] = React.useState<MessageType[]>([])
+
+  /* 消息已读 */
+  React.useEffect(() => {
+    updateNotice({source_id: route.params.friend.friend_id}, state.user?.token!)
+  }, [])
+
+  React.useEffect(() => {
+    /* 私聊 */
+    state.socket?.chat.on('private_message', (data: MessageType, callback) => {
+      setMessages(p => [...p, data])
+      callback('nosave')
+    })
+    return () => {
+      state.socket?.chat.off('private_message')
+    }
+  }, [])
+
+  /* 获取聊天记录 */
+  React.useEffect(() => {
+    if (state.current_talk?.isGroup) {
+      state.socket?.group.emit(
+        'group_chat_history',
+        state.current_talk.conversation_id,
+        (data: MessageType[]) => {
+          // dispatch({type: ActionTypes.CURRENT_MESSAGES, payload: data})
+        },
+      )
+    } else {
+      state.socket?.chat.emit(
+        'private_chat_history',
+        state.user?.result.user_id,
+        route.params.friend.friend_id,
+        (data: MessageType[]) => {
+          setMessages(data)
+        },
+      )
+    }
+
+    return () => {}
+  }, [route.params.friend.friend_id])
 
   const handleGetInputValue = React.useCallback((value: string) => {
-    // console.log(value)
+    let newMessage: MessageType
+    if (state.current_talk?.isGroup) {
+    } else {
+      newMessage = {
+        user_id: state.user?.result.user_id!,
+        createdAt: new Date().toISOString(),
+        msg: value,
+        msg_type: Message_type.TEXT,
+        to_id: state.current_talk?.conversation_id!,
+        user: {
+          avatar: state.user?.result.avatar!,
+          nick_name: state.user?.result.nick_name!,
+        },
+        conversation_id: state.user?.result.user_id!,
+        status: 0,
+      }
+      setMessages(p => [...p, newMessage])
+
+      state.socket?.chat.emit('private_chat', newMessage, (res: any, err: any) => {})
+    }
   }, [])
 
   return (
@@ -58,19 +123,19 @@ const Chat = () => {
       <View style={[styles.flex]}>
         <View style={[styles.messages_list]}>
           <FlatList
-            data={Array(100)
-              .fill(0)
-              .map((item, index) => (index % 2 === 0 ? text[1] : text[0]))}
+            data={[...messages].reverse()}
             inverted
             initialNumToRender={15}
             showsVerticalScrollIndicator={false}
             renderItem={({index, item}) => (
-              // <Message
-              //   me={item.me}
-              //   text={item.text}
-
-              // />
-              <></>
+              <Message
+                avatar={item.user.avatar}
+                text={item.msg}
+                timestamp={item.createdAt}
+                to_id={item.user_id}
+                user_id={item.to_id}
+                me={item.user_id === state.user?.result.user_id!}
+              />
             )}
           />
         </View>

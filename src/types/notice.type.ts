@@ -19,6 +19,7 @@ export interface NoticeType {
   done: number
   source: Pick<UserType, 'user_id' | 'avatar' | 'nick_name'>
   createdAt: string
+  total: number
 }
 
 export interface UnReadMessageType extends NoticeType {

@@ -2,8 +2,8 @@ import {DataType, MySocket} from '../index'
 import {FeedType} from '../feed.type'
 import {UserType} from '../user.type'
 import {FriendType} from '../friend.type'
-import {OtherNoticeType} from '../notice.type'
-import {ConversationType} from '../chat.type'
+import {OtherNoticeType, UnReadMessageType} from '../notice.type'
+import {ChatGroupType, ConversationType, MessageType} from '../chat.type'
 
 export interface createContextType {
   state: ReducerState
@@ -18,6 +18,9 @@ export interface ReducerState {
   notice: OtherNoticeType[]
   socket: MySocket | undefined
   conversations: ConversationType[]
+  current_talk: ConversationType | undefined
+  unread_messages: UnReadMessageType[]
+  groups: ChatGroupType[]
 }
 
 export enum ActionTypes {
@@ -32,9 +35,17 @@ export enum ActionTypes {
   SOCKETTONOTICE = 'socketToNotice',
   DELFRIEND = 'delFriend',
   CONVERSATIONS = 'conversations',
-  DELCONVERSATION='delConversation',
-  ADDFRIEND='addFriend',
-  READNOTICE='readNotice'
+  DELCONVERSATION = 'delConversation',
+  ADDFRIEND = 'addFriend',
+  READNOTICE = 'readNotice',
+  CURRENTTALK = 'current_talk',
+  CONVERSATIONTOTOP = 'conversationToTop',
+  UNREADMESSAGES = 'unread_messages',
+  ADDUNREADMESSAGE = 'addUnReadMessage',
+  GROUPS = 'groups',
+  NEWCONVERSATION = 'newConversation',
+  UPDATEUNREADMESSAGE = 'updateUnReadMessage',
+  UPDATECONVERSATIONMSGLENGTH = 'updateConversationMsgLength'
 }
 
 export type ActionMap<M extends {[index: string]: any}> = {
@@ -63,6 +74,14 @@ export interface ReducerPaylodType {
   [ActionTypes.DELCONVERSATION]: string
   [ActionTypes.ADDFRIEND]: FriendType
   [ActionTypes.READNOTICE]: string
+  [ActionTypes.CURRENTTALK]: ConversationType
+  [ActionTypes.CONVERSATIONTOTOP]: ConversationType
+  [ActionTypes.UNREADMESSAGES]: UnReadMessageType[]
+  [ActionTypes.ADDUNREADMESSAGE]: UnReadMessageType
+  [ActionTypes.GROUPS]: ChatGroupType[]
+  [ActionTypes.NEWCONVERSATION]: ConversationType
+  [ActionTypes.UPDATEUNREADMESSAGE]: string
+  [ActionTypes.UPDATECONVERSATIONMSGLENGTH]: string
 }
 
 export type ActionsType = ActionMap<ReducerPaylodType>[keyof ActionMap<ReducerPaylodType>]

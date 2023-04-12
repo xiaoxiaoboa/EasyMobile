@@ -1,6 +1,9 @@
 import React from 'react'
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs'
-import {View, StyleSheet, Animated} from 'react-native'
+import {
+  createMaterialTopTabNavigator,
+  MaterialTopTabNavigationProp,
+} from '@react-navigation/material-top-tabs'
+import {View, StyleSheet, Animated, Text} from 'react-native'
 import Home from '../../screens/Home'
 import {ThemeContext} from '../../theme'
 import {MyContext} from '../../context/context'
@@ -11,8 +14,9 @@ import Friends from '../../screens/Friends'
 import Conversation from '../../screens/Conversation'
 import Notice from '../../screens/Notice'
 import MyProfile from '../../screens/MyProfile'
+import {TabBarParams} from '../../types/route'
 
-const {Navigator, Screen} = createMaterialTopTabNavigator()
+const {Navigator, Screen} = createMaterialTopTabNavigator<TabBarParams>()
 const TopTabs = () => {
   const {state} = React.useContext(MyContext)
   const {theme} = React.useContext(ThemeContext)

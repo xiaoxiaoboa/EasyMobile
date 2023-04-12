@@ -1,8 +1,8 @@
 import {DataType} from '../types'
-import {ConversationType} from '../types/chat.type'
+import {ConversationType, MessageType} from '../types/chat.type'
 import {FeedType} from '../types/feed.type'
 import {FriendType} from '../types/friend.type'
-import {OtherNoticeType} from '../types/notice.type'
+import {OtherNoticeType, UnReadMessageType} from '../types/notice.type'
 import {ActionsType} from '../types/reducer'
 import {ActionTypes, ReducerState} from '../types/reducer'
 
@@ -77,7 +77,7 @@ export const readNotice = (state: ReducerState, payload: string) => {
 }
 
 /* 添加conversation */
-export const addConversion = (state: ReducerState, payload: ConversationType) => {
+export const addConverstion = (state: ReducerState, payload: ConversationType) => {
   return {...state, conversations: [...state.conversations, payload]}
 }
 /* 删除一个conversation */
@@ -85,6 +85,78 @@ export const deleteConversation = (state: ReducerState, payload: string) => {
   return {
     ...state,
     conversations: state.conversations.filter(i => i.conversation_id !== payload),
+  }
+}
+/* 更新conversation msg_length */
+export const updateConversationMsgLength = (
+  state: ReducerState,
+  payload: string,
+): ReducerState => {
+  const newData = state.conversations.map(i => {
+    if (i.conversation_id === payload) {
+      return {...i, msg_length: 0}
+    } else {
+      return i
+    }
+  })
+  return {...state, conversations: newData}
+}
+/* 来新消息，置顶conversation */
+export const updataConversation = (
+  state: ReducerState,
+  payload: ConversationType,
+): ReducerState => {
+  console.log([
+    payload,
+    ...state.conversations.filter(i => i.conversation_id !== payload.conversation_id),
+  ])
+  return {
+    ...state,
+    conversations: [
+      payload,
+      ...state.conversations.filter(i => i.conversation_id !== payload.conversation_id),
+    ],
+  }
+}
+/* 来新消息，新conversation */
+export const newConversation = (
+  state: ReducerState,
+  payload: ConversationType,
+): ReducerState => {
+  console.log('actions:', payload)
+  return {...state, conversations: [payload, ...state.conversations]}
+}
+
+/* current_talk */
+export const currentTalk = (
+  state: ReducerState,
+  payload: ConversationType | undefined,
+) => {
+  return {...state, current_talk: payload}
+}
+/* 上线后获取unread_messages */
+export const unReadMessages = (
+  state: ReducerState,
+  payload: UnReadMessageType[],
+): ReducerState => {
+  return {...state, unread_messages: payload}
+}
+/* 新增unread_message */
+export const addUnReadMessage = (
+  state: ReducerState,
+  payload: UnReadMessageType,
+): ReducerState => {
+  return {...state, unread_messages: [...state.unread_messages, payload]}
+}
+/* 修改unread_message为已读 */
+export const updateUnReadMessage = (
+  state: ReducerState,
+  payload: string,
+): ReducerState => {
+  const newData = state.unread_messages.map(i => {})
+  return {
+    ...state,
+    unread_messages: state.unread_messages.filter(i => i.source_id !== payload),
   }
 }
 
@@ -99,9 +171,16 @@ const actions = {
   [ActionTypes.DELNOTICE]: delNotice,
   [ActionTypes.SOCKETTONOTICE]: socketToNotice,
   [ActionTypes.DELFRIEND]: delFriend,
-  [ActionTypes.CONVERSATIONS]: addConversion,
+  [ActionTypes.CONVERSATIONS]: addConverstion,
   [ActionTypes.DELCONVERSATION]: deleteConversation,
   [ActionTypes.ADDFRIEND]: addFriend,
   [ActionTypes.READNOTICE]: readNotice,
+  [ActionTypes.UNREADMESSAGES]: unReadMessages,
+  [ActionTypes.ADDUNREADMESSAGE]: addUnReadMessage,
+  [ActionTypes.CONVERSATIONTOTOP]: updataConversation,
+  [ActionTypes.NEWCONVERSATION]: newConversation,
+  [ActionTypes.UPDATEUNREADMESSAGE]: updateUnReadMessage,
+  [ActionTypes.UPDATECONVERSATIONMSGLENGTH]: updateConversationMsgLength,
+  [ActionTypes.CURRENTTALK]: currentTalk,
 }
 export default actions
