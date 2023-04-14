@@ -140,12 +140,31 @@ export const deleteFriend = async (
 export const queryMessageNotice = async (
   user_id: string,
   type: string,
-  t: string
+  t: string,
 ): Promise<ResponseType<UnReadMessageType[]>> => {
   return await request({
-    url: "/notice_message",
-    methods: "POST",
-    body: { user_id, type },
-    token: t
+    url: '/notice_message',
+    methods: 'POST',
+    body: {user_id, type},
+    token: t,
+  })
+}
+
+/* 消息中的图片和视频上传 */
+export const messageUpload = async (
+  file: Asset,
+  user_id: string,
+  friend_id: string,
+  t: string,
+): Promise<ResponseType<string>> => {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('user_id', user_id)
+  formData.append('friend_id', friend_id)
+  return await uploadRequest({
+    url: '/message_upload',
+    methods: 'POST',
+    body: formData,
+    token: t,
   })
 }

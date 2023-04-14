@@ -29,6 +29,7 @@ export enum ActionTypes {
   DELFEED = 'delFeed',
   POSTTING = 'postting',
   FRIENDS = 'friends',
+  UPDATEFRIEND = 'updateFriend',
   PROFILEFEEDS = 'profileFeeds',
   NOTICE = 'notice',
   DELNOTICE = 'delNotice',
@@ -45,7 +46,10 @@ export enum ActionTypes {
   GROUPS = 'groups',
   NEWCONVERSATION = 'newConversation',
   UPDATEUNREADMESSAGE = 'updateUnReadMessage',
-  UPDATECONVERSATIONMSGLENGTH = 'updateConversationMsgLength'
+  UPDATECONVERSATIONMSGLENGTH = 'updateConversationMsgLength',
+  RESETSTATE = 'resetState',
+  RESETHOMEFEEDS = 'resetHomeFeeds',
+  UPDATEALLCONVERSATIONS = 'updateAllConversations',
 }
 
 export type ActionMap<M extends {[index: string]: any}> = {
@@ -70,11 +74,11 @@ export interface ReducerPaylodType {
   [ActionTypes.DELNOTICE]: string
   [ActionTypes.SOCKETTONOTICE]: OtherNoticeType
   [ActionTypes.DELFRIEND]: string
-  [ActionTypes.CONVERSATIONS]: ConversationType
+  [ActionTypes.CONVERSATIONS]: ConversationType[]
   [ActionTypes.DELCONVERSATION]: string
   [ActionTypes.ADDFRIEND]: FriendType
   [ActionTypes.READNOTICE]: string
-  [ActionTypes.CURRENTTALK]: ConversationType
+  [ActionTypes.CURRENTTALK]: ConversationType | undefined
   [ActionTypes.CONVERSATIONTOTOP]: ConversationType
   [ActionTypes.UNREADMESSAGES]: UnReadMessageType[]
   [ActionTypes.ADDUNREADMESSAGE]: UnReadMessageType
@@ -82,6 +86,10 @@ export interface ReducerPaylodType {
   [ActionTypes.NEWCONVERSATION]: ConversationType
   [ActionTypes.UPDATEUNREADMESSAGE]: string
   [ActionTypes.UPDATECONVERSATIONMSGLENGTH]: string
+  [ActionTypes.UPDATEFRIEND]: string
+  [ActionTypes.RESETSTATE]: string
+  [ActionTypes.RESETHOMEFEEDS]: string
+  [ActionTypes.UPDATEALLCONVERSATIONS]: string
 }
 
 export type ActionsType = ActionMap<ReducerPaylodType>[keyof ActionMap<ReducerPaylodType>]

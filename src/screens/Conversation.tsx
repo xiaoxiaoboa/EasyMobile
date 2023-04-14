@@ -34,6 +34,11 @@ const Conversation = () => {
           showsVerticalScrollIndicator={false}
           initialNumToRender={10}
           keyExtractor={({conversation_id}) => conversation_id}
+          ItemSeparatorComponent={() => (
+            <View style={{paddingLeft: 80}}>
+              <View style={{height: 1, backgroundColor: theme.colors.listdivder}} />
+            </View>
+          )}
           renderItem={({item}) => (
             <RenderItem
               theme={theme.colors}
@@ -105,13 +110,16 @@ const RenderItem = (props: RenderItemProps) => {
               numberOfLines={1}
               ellipsizeMode="tail"
               style={[styles.user_message, {color: theme.secondary}]}>
-              {conversation.msg}
+              {conversation.msg_type === 'video' && `[视频]`}
+              {conversation.msg_type === 'image' && `[图片]`}
+              {conversation.msg_type === 'text' && conversation.msg}
             </Text>
           )}
         </View>
         <View style={styles.timestamp}>
           <Text style={{color: theme.secondary}}>
-            {getTimeDiff(conversation.msg_createdAt, 'time')}
+            {conversation.msg_createdAt.length > 0 &&
+              getTimeDiff(conversation.msg_createdAt, 'time')}
           </Text>
           {conversation.msg_length > 0 && (
             <View style={[styles.message_length, {backgroundColor: theme.primary}]}>

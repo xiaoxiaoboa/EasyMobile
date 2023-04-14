@@ -17,19 +17,34 @@ import MyInput from '../components/MyInput/MyInput'
 import Divider from '../components/Divider/Divider'
 import {nanoid} from 'nanoid'
 import FIcons from 'react-native-vector-icons/Feather'
+import {updateNotice} from '../api/user.api'
+import {ActionTypes} from '../types/reducer'
 
 const CheckNotice = () => {
-  const {state} = React.useContext(MyContext)
+  const {state, dispatch} = React.useContext(MyContext)
   const {theme} = React.useContext(ThemeContext)
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'checkNotice'>>()
   const [feed, setFeeds] = React.useState<FeedType | undefined>(undefined)
   const [comments, setComments] = React.useState<Feed_CommentType[]>([])
+  const [noData, setNoData] = React.useState<boolean>(false)
 
+  /* 更新通知 */
+  React.useEffect(() => {
+    updateNotice({notice_id: route.params.notice_id}, state.user?.token!).then(val => {
+      if (val.code === 1) {
+        dispatch({type: ActionTypes.READNOTICE, payload: route.params.notice_id})
+      }
+    })
+  }, [])
+
+  /* 获取帖子 */
   React.useEffect(() => {
     feed_queryOne(route.params.feed_id!, state.user?.token!).then(val => {
       if (val.code === 1) {
         setFeeds(val.data)
+      } else {
+        setNoData(true)
       }
     })
     feed_comments(route.params.feed_id).then(val => {
@@ -84,11 +99,14 @@ const CheckNotice = () => {
           initialNumToRender={15}
           contentContainerStyle={feed ? [] : styles.flex}
           ListEmptyComponent={
-            <View style={[styles.flex, {justifyContent: 'center', alignItems: 'center'}]}>
-              <Text style={{fontSize: 18, color: theme.colors.secondary}}>
-                帖子不存在或已被删除
-              </Text>
-            </View>
+            noData ? (
+              <View
+                style={[styles.flex, {justifyContent: 'center', alignItems: 'center'}]}>
+                <Text style={{fontSize: 18, color: theme.colors.secondary}}>
+                  帖子不存在或已被删除
+                </Text>
+              </View>
+            ) : undefined
           }
           ListHeaderComponent={
             feed && (
@@ -142,7 +160,7 @@ const CheckNotice = () => {
       </View>
       <Divider />
       <MyInput
-        editable={feed !== undefined}
+        editable={!noData}
         placeholder="写评论~"
         hiddenIcon
         hiddenEmoji={false}

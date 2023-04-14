@@ -18,6 +18,7 @@ const MyColors: {
     inputbg: '#f1f2f6',
     clickbg: '#ececed',
     unreadNotice: '#D4E6F1',
+    listdivder: '#ececed',
   },
   dark: {
     isDark: true,
@@ -33,6 +34,7 @@ const MyColors: {
     inputbg: '#3a3b3d',
     clickbg: '#4d4d51',
     unreadNotice: '#2E4053',
+    listdivder: '#444548',
   },
 }
 

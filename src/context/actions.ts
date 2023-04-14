@@ -3,8 +3,22 @@ import {ConversationType, MessageType} from '../types/chat.type'
 import {FeedType} from '../types/feed.type'
 import {FriendType} from '../types/friend.type'
 import {OtherNoticeType, UnReadMessageType} from '../types/notice.type'
-import {ActionsType} from '../types/reducer'
 import {ActionTypes, ReducerState} from '../types/reducer'
+
+/* 重置state */
+export const resetState = (state: ReducerState): ReducerState => {
+  return {
+    ...state,
+    user: undefined,
+    friends: [],
+    profileFeeds: [],
+    notice: [],
+    conversations: [],
+    current_talk: undefined,
+    unread_messages: [],
+    groups: [],
+  }
+}
 
 /* 设置用户 */
 export const user = (state: ReducerState, payload?: DataType) => {
@@ -14,6 +28,10 @@ export const user = (state: ReducerState, payload?: DataType) => {
 /* 获取帖子 */
 export const getHomeFeeds = (state: ReducerState, payload: FeedType[]) => {
   return {...state, homeFeeds: [...state.homeFeeds, ...payload]}
+}
+/* 重置homeFeeds */
+export const resetHomeFeeds = (state: ReducerState) => {
+  return {...state, homeFeeds: []}
 }
 /* 删除帖子 */
 export const delFeed = (state: ReducerState, payload: string) => {
@@ -36,6 +54,17 @@ export const postting = (state: ReducerState, payload: FeedType) => {
 export const getFriends = (state: ReducerState, payload: FriendType[]) => {
   return {...state, friends: payload}
 }
+/* 更新好友状态 */
+export const updateFriend = (state: ReducerState, payload: string): ReducerState => {
+  const newData = state.friends.map(i => {
+    if (i.friend_id === payload) {
+      return {...i, friendship: false}
+    } else {
+      return i
+    }
+  })
+  return {...state, friends: newData}
+}
 /* 删除好友 */
 export const delFriend = (state: ReducerState, payload: string) => {
   return {...state, friends: state.friends.filter(i => i.friend_id !== payload)}
@@ -54,7 +83,16 @@ export const notice = (state: ReducerState, payload: OtherNoticeType[]) => {
   /* 过滤掉本地已经存在的未读消息 */
   const newSet = new Set(state.notice.map(i => i.notice_id))
   const newNotice = payload.filter(i => !newSet.has(i.notice_id))
-  return {...state, notice: [...newNotice, ...state.notice]}
+  /* 更新本地已读的未读消息 */
+  const newSet2 = new Set(payload.map(i => i.notice_id))
+  const newNotice2 = state.notice.map(i => {
+    if (i.done === 0 && !newSet2.has(i.notice_id)) {
+      return {...i, done: 1}
+    } else {
+      return i
+    }
+  })
+  return {...state, notice: [...newNotice, ...newNotice2]}
 }
 /* socket接收到的notice */
 export const socketToNotice = (state: ReducerState, payload: OtherNoticeType) => {
@@ -76,9 +114,16 @@ export const readNotice = (state: ReducerState, payload: string) => {
   return {...state, notice: newNotice}
 }
 
-/* 添加conversation */
-export const addConverstion = (state: ReducerState, payload: ConversationType) => {
-  return {...state, conversations: [...state.conversations, payload]}
+/* 获取未读消息时添加conversation */
+export const addConverstion = (state: ReducerState, payload: ConversationType[]) => {
+  const newSet = new Set(payload.map(i => i.conversation_id))
+  return {
+    ...state,
+    conversations: [
+      ...payload,
+      ...state.conversations.filter(i => !newSet.has(i.conversation_id)),
+    ],
+  }
 }
 /* 删除一个conversation */
 export const deleteConversation = (state: ReducerState, payload: string) => {
@@ -106,10 +151,6 @@ export const updataConversation = (
   state: ReducerState,
   payload: ConversationType,
 ): ReducerState => {
-  console.log([
-    payload,
-    ...state.conversations.filter(i => i.conversation_id !== payload.conversation_id),
-  ])
   return {
     ...state,
     conversations: [
@@ -123,8 +164,17 @@ export const newConversation = (
   state: ReducerState,
   payload: ConversationType,
 ): ReducerState => {
-  console.log('actions:', payload)
-  return {...state, conversations: [payload, ...state.conversations]}
+  return {
+    ...state,
+    conversations: [
+      payload,
+      ...state.conversations.filter(i => i.conversation_id !== payload.conversation_id),
+    ],
+  }
+}
+/* 新消息通知为空，同步到本地conversat */
+export const updateAllConversations = (state: ReducerState) => {
+  return {...state, conversations: state.conversations.map(i => ({...i, msg_length: 0}))}
 }
 
 /* current_talk */
@@ -139,7 +189,9 @@ export const unReadMessages = (
   state: ReducerState,
   payload: UnReadMessageType[],
 ): ReducerState => {
-  return {...state, unread_messages: payload}
+  const newSet = new Set(state.friends.map(i => i.friend_id))
+  const newData = payload.filter(i => newSet.has(i.source.user_id))
+  return {...state, unread_messages: newData}
 }
 /* 新增unread_message */
 export const addUnReadMessage = (
@@ -153,7 +205,6 @@ export const updateUnReadMessage = (
   state: ReducerState,
   payload: string,
 ): ReducerState => {
-  const newData = state.unread_messages.map(i => {})
   return {
     ...state,
     unread_messages: state.unread_messages.filter(i => i.source_id !== payload),
@@ -161,6 +212,7 @@ export const updateUnReadMessage = (
 }
 
 const actions = {
+  [ActionTypes.RESETSTATE]: resetState,
   [ActionTypes.USER]: user,
   [ActionTypes.GETHOMEFEEDS]: getHomeFeeds,
   [ActionTypes.DELFEED]: delFeed,
@@ -182,5 +234,8 @@ const actions = {
   [ActionTypes.UPDATEUNREADMESSAGE]: updateUnReadMessage,
   [ActionTypes.UPDATECONVERSATIONMSGLENGTH]: updateConversationMsgLength,
   [ActionTypes.CURRENTTALK]: currentTalk,
+  [ActionTypes.UPDATEFRIEND]: updateFriend,
+  [ActionTypes.RESETHOMEFEEDS]: resetHomeFeeds,
+  [ActionTypes.UPDATEALLCONVERSATIONS]: updateAllConversations,
 }
 export default actions

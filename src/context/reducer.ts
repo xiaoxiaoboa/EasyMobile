@@ -46,6 +46,14 @@ const reducer = (state: ReducerState, action: ActionsType) => {
       return actions.current_talk(state, payload)
     case ActionTypes.UPDATEUNREADMESSAGE:
       return actions.updateUnReadMessage(state, payload)
+    case ActionTypes.UPDATEFRIEND:
+      return actions.updateFriend(state, payload)
+    case ActionTypes.RESETSTATE:
+      return actions.resetState(state)
+    case ActionTypes.RESETHOMEFEEDS:
+      return actions.resetHomeFeeds(state)
+    case ActionTypes.UPDATEALLCONVERSATIONS:
+      return actions.updateAllConversations(state)
     default:
       return state
   }

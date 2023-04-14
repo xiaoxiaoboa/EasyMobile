@@ -18,6 +18,7 @@ import getUnionUrl from '../utils/getUnionUrl'
 import getTimeDiff from '../utils/getTimeDiff'
 import {useNavigation, NavigationProp} from '@react-navigation/native'
 import {RootStackParamList} from '../types/route'
+import {ConversationType, Message_type} from '../types/chat.type'
 
 const Friends = () => {
   const {theme} = React.useContext(ThemeContext)
@@ -36,24 +37,43 @@ const Friends = () => {
             paddingVertical={10}
           />
         </View>
-        <Pressable
-          style={({pressed}) => [
-            styles.request,
-            {
-              backgroundColor: theme.colors.clickbg,
-              transform: [{scale: pressed ? 0.97 : 1}],
-            },
-          ]}>
-          <Text
-            style={{
-              color: theme.colors.defaultTextColor,
-              fontWeight: '500',
-              fontSize: 16,
-            }}>
-            好友申请
-          </Text>
-        </Pressable>
-        <Divider />
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Pressable
+            style={({pressed}) => [
+              styles.request,
+              {
+                backgroundColor: theme.colors.clickbg,
+                transform: [{scale: pressed ? 0.97 : 1}],
+              },
+            ]}>
+            <Text
+              style={{
+                color: theme.colors.defaultTextColor,
+                fontWeight: '500',
+                fontSize: 16,
+              }}>
+              好友申请
+            </Text>
+          </Pressable>
+          <Pressable
+            style={({pressed}) => [
+              styles.request,
+              {
+                backgroundColor: theme.colors.clickbg,
+                transform: [{scale: pressed ? 0.97 : 1}],
+              },
+            ]}>
+            <Text
+              style={{
+                color: theme.colors.defaultTextColor,
+                fontWeight: '500',
+                fontSize: 16,
+              }}>
+              群组
+            </Text>
+          </Pressable>
+        </View>
+        {/* <Divider /> */}
       </View>
 
       {/* 列表 */}
@@ -63,6 +83,11 @@ const Friends = () => {
         showsVerticalScrollIndicator={false}
         initialNumToRender={10}
         maxToRenderPerBatch={50}
+        ItemSeparatorComponent={() => (
+          <View style={{paddingLeft: 80}}>
+            <View style={{height: 1, backgroundColor: theme.colors.listdivder}} />
+          </View>
+        )}
         renderItem={({item}) => (
           <RenderItem
             friend={item}
@@ -83,8 +108,8 @@ const RenderItem = React.memo((props: RenderItemProps) => {
   const [modalVisible, setModalVisible] = React.useState<boolean>(false)
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
 
-  const handleModalVisible = React.useCallback((visible: boolean) => {
-    setModalVisible(visible)
+  const handleModalVisible = React.useCallback(() => {
+    setModalVisible(p => !p)
   }, [])
   return (
     <>
@@ -105,7 +130,7 @@ const RenderItem = React.memo((props: RenderItemProps) => {
           {friend.nick_name}
         </Text>
         <Pressable
-          onPress={() => handleModalVisible(true)}
+          onPress={handleModalVisible}
           style={[styles.user_btn]}
           hitSlop={15}
           android_ripple={{
@@ -130,6 +155,7 @@ const RenderItem = React.memo((props: RenderItemProps) => {
           <ModalContent
             friend={friend}
             theme={theme}
+            handleModalVisible={handleModalVisible}
           />
         }
       />
@@ -140,12 +166,15 @@ const RenderItem = React.memo((props: RenderItemProps) => {
 interface ModalContentProps {
   theme: Colors
   friend: FriendType
+  handleModalVisible: () => void
 }
 const ModalContent = React.memo((props: ModalContentProps) => {
-  const {theme, friend} = props
+  const {theme, friend, handleModalVisible} = props
   const {state, dispatch} = React.useContext(MyContext)
   const dateRef = React.useRef(new Date(friend.createdAt)).current
+  const navigate = useNavigation<NavigationProp<RootStackParamList>>()
 
+  /* 删除好友 */
   const handleDeleteFriend = () => {
     deleteFriend(state.user?.result.user_id!, friend.friend_id, state.user?.token!).then(
       val => {
@@ -155,9 +184,33 @@ const ModalContent = React.memo((props: ModalContentProps) => {
           if (state.conversations.find(i => i.conversation_id === friend.friend_id)) {
             dispatch({type: ActionTypes.DELCONVERSATION, payload: friend.friend_id})
           }
+          handleModalVisible()
         }
       },
     )
+  }
+
+  /* 发送消息 */
+  const handleTalk = () => {
+    const newConversation: ConversationType = {
+      conversation_id: friend.friend_id!,
+      avatar: friend.avatar!,
+      isGroup: false,
+      name: friend.nick_name!,
+      msg: '',
+      msg_length: 0,
+      msg_type: Message_type.TEXT,
+      user_name: friend.nick_name!,
+      msg_createdAt: '',
+    }
+    dispatch({type: ActionTypes.CURRENTTALK, payload: newConversation})
+    dispatch({
+      type: ActionTypes.UPDATEUNREADMESSAGE,
+      payload: newConversation.conversation_id,
+    })
+    dispatch({type: ActionTypes.NEWCONVERSATION, payload: newConversation})
+    handleModalVisible()
+    navigate.navigate('chat', {friend: friend})
   }
   return (
     <View>
@@ -184,6 +237,7 @@ const ModalContent = React.memo((props: ModalContentProps) => {
       <Divider />
       <View style={[styles.options]}>
         <Pressable
+          onPress={handleTalk}
           style={[styles.option]}
           android_ripple={{color: theme.clickbg}}>
           <Icons
@@ -255,7 +309,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   request: {
-    marginRight: 'auto',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 20,

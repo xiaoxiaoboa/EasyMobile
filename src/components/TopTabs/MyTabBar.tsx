@@ -89,7 +89,8 @@ const MyTabBar = (props: MyTabBarProps) => {
               paddingVertical: 5,
             }}>
             <View style={styles.icon}>{getIcons()}</View>
-            {route.name === 'conversation' && <Badge />}
+            {route.name === 'conversation' && <MessageBadge />}
+            {route.name === 'notice' && <NoticeBadge />}
           </TouchableOpacity>
         )
       })}
@@ -97,14 +98,37 @@ const MyTabBar = (props: MyTabBarProps) => {
   )
 }
 
-const Badge = React.memo(() => {
+const MessageBadge = React.memo(() => {
   const {state} = React.useContext(MyContext)
-  // const total = React.useRef(
-  //   state.unread_messages.map(i => i.total).reduce((prev, curr) => prev + curr, 0),
-  // )
   const total = React.useMemo(
     () => state.unread_messages.map(i => i.total).reduce((prev, curr) => prev + curr, 0),
     [state.unread_messages],
+  )
+  return (
+    <>
+      {total > 9 && total < 98 && (
+        <View style={[styles.badge, styles.middleNumber]}>
+          <Text style={{fontSize: 12, color: '#FFFFFF'}}>{total}</Text>
+        </View>
+      )}
+      {total > 98 && (
+        <View style={[styles.badge, styles.largeNumber]}>
+          <Text style={{fontSize: 10, color: '#FFFFFF'}}>{total}+</Text>
+        </View>
+      )}
+      {total < 10 && total > 0 && (
+        <View style={[styles.badge, styles.smallNumber]}>
+          <Text style={{fontSize: 14, color: '#FFFFFF'}}>{total}</Text>
+        </View>
+      )}
+    </>
+  )
+})
+const NoticeBadge = React.memo(() => {
+  const {state} = React.useContext(MyContext)
+  const total = React.useMemo(
+    () => state.notice.filter(i => i.done === 0).length,
+    [state.notice],
   )
   return (
     <>

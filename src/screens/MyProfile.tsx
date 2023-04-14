@@ -66,7 +66,7 @@ const MyProfile = () => {
         data={state.profileFeeds}
         initialNumToRender={3}
         maxToRenderPerBatch={3}
-        onEndReachedThreshold={0.3}
+        onEndReachedThreshold={0.5}
         onEndReached={getMyFeeds}
         keyExtractor={({feed_id}) => feed_id}
         ListHeaderComponent={Header}
@@ -88,7 +88,7 @@ const MyProfile = () => {
 
 const Header = React.memo(() => {
   const {theme} = React.useContext(ThemeContext)
-  const {state} = React.useContext(MyContext)
+  const {state, dispatch} = React.useContext(MyContext)
   const [settingModalVisible, setSettingModalVisible] = React.useState<boolean>(false)
   const [backgroundModalVisible, setBackgroundModalVisible] =
     React.useState<boolean>(false)
@@ -100,20 +100,20 @@ const Header = React.memo(() => {
   const {isInternetReachable} = useNetInfo()
 
   /* 打开modal */
-  const handleBackgroundModal = React.useCallback((visible: boolean) => {
-    setBackgroundModalVisible(visible)
+  const handleBackgroundModal = React.useCallback(() => {
+    setBackgroundModalVisible(p => !p)
   }, [])
   /* 打开modal */
-  const handleAvatarModalVisible = React.useCallback((visible: boolean) => {
-    setAvatarModalVisible(visible)
+  const handleAvatarModalVisible = React.useCallback(() => {
+    setAvatarModalVisible(p => !p)
   }, [])
   /* 打开modal */
-  const handleSettingModalVisible = React.useCallback((visible: boolean) => {
-    setSettingModalVisible(visible)
+  const handleSettingModalVisible = React.useCallback(() => {
+    setSettingModalVisible(p => !p)
   }, [])
   /* 打开modal */
-  const handleConfirmVisible = React.useCallback((visible: boolean) => {
-    setConfirmModalVisible(visible)
+  const handleConfirmVisible = React.useCallback(() => {
+    setConfirmModalVisible(p => !p)
   }, [])
 
   /* 处理修改的头像 */
@@ -124,6 +124,18 @@ const Header = React.memo(() => {
   const handleBackgroundUri = React.useCallback((background?: Asset) => {
     setBackgroundUri(background)
   }, [])
+
+  /* 退出 */
+  const handleExit = () => {
+    state.socket?.chat.disconnect()
+    state.socket?.group.disconnect()
+    state.socket?.notice.disconnect()
+
+    dispatch({type: ActionTypes.RESETSTATE, payload: ''})
+    storage.delete('user')
+
+    navigate.navigate('login')
+  }
 
   return (
     <View style={[styles.top, {backgroundColor: theme.colors.background}]}>
@@ -146,7 +158,7 @@ const Header = React.memo(() => {
         />
         {/* 更换背景图按钮 */}
         <Pressable
-          onPress={() => handleBackgroundModal(true)}
+          onPress={handleBackgroundModal}
           style={({pressed}) => [
             styles.background_btn,
             {
@@ -180,7 +192,7 @@ const Header = React.memo(() => {
           />
           {/* 更换头像按钮 */}
           <Pressable
-            onPress={() => handleAvatarModalVisible(true)}
+            onPress={handleAvatarModalVisible}
             style={({pressed}) => [
               styles.background_btn,
               {
@@ -234,7 +246,7 @@ const Header = React.memo(() => {
 
           {/* 设置按钮 */}
           <Pressable
-            onPress={() => handleSettingModalVisible(true)}
+            onPress={handleSettingModalVisible}
             style={({pressed}) => [
               styles.setting,
               {
@@ -256,12 +268,13 @@ const Header = React.memo(() => {
       <MyModal
         half
         modalVisible={settingModalVisible}
-        setModalVisible={setSettingModalVisible}
+        setModalVisible={handleSettingModalVisible}
         children={
           <View style={[styles.modal_options]}>
             <ToggleTheme />
             <Divider />
             <Pressable
+              onPress={handleExit}
               style={[styles.modal_option]}
               android_ripple={{color: theme.colors.clickbg}}>
               <Icons
@@ -280,7 +293,7 @@ const Header = React.memo(() => {
       <MyModal
         half
         modalVisible={avatarModalVisible}
-        setModalVisible={setAvatarModalVisible}
+        setModalVisible={handleAvatarModalVisible}
         children={
           <ChangePhotoModal
             type="avatar"
@@ -296,7 +309,7 @@ const Header = React.memo(() => {
       <MyModal
         half
         modalVisible={backgroundModalVisible}
-        setModalVisible={setBackgroundModalVisible}
+        setModalVisible={handleBackgroundModal}
         children={
           <ChangePhotoModal
             type="bg"

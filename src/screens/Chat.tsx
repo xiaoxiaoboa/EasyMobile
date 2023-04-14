@@ -1,5 +1,5 @@
 import React from 'react'
-import {View, StyleSheet, Text, Pressable, DrawerLayoutAndroidBase} from 'react-native'
+import {View, StyleSheet, Text, Pressable} from 'react-native'
 import {ThemeContext} from '../theme'
 import FIcons from 'react-native-vector-icons/Feather'
 import Divider from '../components/Divider/Divider'
@@ -15,19 +15,13 @@ import {
 import {RootStackParamList} from '../types/route'
 import {MessageType, Message_type} from '../types/chat.type'
 import {MyContext} from '../context/context'
-import getTimeDiff from '../utils/getTimeDiff'
-import {updateNotice} from '../api/user.api'
-
-const text = [
-  {
-    me: false,
-    text: `1杨家将是中国历史上著名的军事将领家族之一，起源于宋朝时期。最著名的代表人物为杨业、杨岐、杨坚等，以及杨家将团队的其他成员。杨家将的战功卓著，曾在历次战争中发挥重要作用。他们擅长火器战术和创新性地运用骑兵，并以强大的战斗力和组织能力著称。在宋金战争中，杨家将被派往南方，防守钦州、邕州等城池，保卫南宋国土。杨家将是中国军事史上的传奇之一，也是中国文化中具有重要地位的形象之一。`,
-  },
-  {
-    me: true,
-    text: `2杨家将是中国历史上著名的军事将领家族之一，起源于宋朝时期。最著名的代表人物为杨业、杨岐、杨坚等，以及杨家将团队的其他成员。杨家将的战功卓著，曾在历次战争中发挥重要作用。他们擅长火器战术和创新性地运用骑兵，并以强大的战斗力和组织能力著称。在宋金战争中，杨家将被派往南方，防守钦州、邕州等城池，保卫南宋国土。杨家将是中国军事史上的传奇之一，也是中国文化中具有重要地位的形象之一。`,
-  },
-]
+import {messageUpload, updateNotice} from '../api/user.api'
+import Icons from 'react-native-vector-icons/Ionicons'
+import MyModal from '../components/MyModal/MyModal'
+import {Asset, launchCamera, launchImageLibrary} from 'react-native-image-picker'
+import FAIcons from 'react-native-vector-icons/FontAwesome'
+import myToast from '../utils/Toast'
+import {ActionTypes} from '../types/reducer'
 
 const Chat = () => {
   const {state, dispatch} = React.useContext(MyContext)
@@ -35,10 +29,16 @@ const Chat = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'chat'>>()
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
   const [messages, setMessages] = React.useState<MessageType[]>([])
+  const [modalVisible, setModalVisible] = React.useState<boolean>(false)
+  const listRef = React.useRef<FlatList | null>(null)
 
   /* 消息已读 */
   React.useEffect(() => {
     updateNotice({source_id: route.params.friend.friend_id}, state.user?.token!)
+
+    return () => {
+      dispatch({type: ActionTypes.CURRENTTALK, payload: undefined})
+    }
   }, [])
 
   React.useEffect(() => {
@@ -55,13 +55,13 @@ const Chat = () => {
   /* 获取聊天记录 */
   React.useEffect(() => {
     if (state.current_talk?.isGroup) {
-      state.socket?.group.emit(
-        'group_chat_history',
-        state.current_talk.conversation_id,
-        (data: MessageType[]) => {
-          // dispatch({type: ActionTypes.CURRENT_MESSAGES, payload: data})
-        },
-      )
+      // state.socket?.group.emit(
+      //   'group_chat_history',
+      //   state.current_talk.conversation_id,
+      //   (data: MessageType[]) => {
+      //     dispatch({type: ActionTypes.CURRENT_MESSAGES, payload: data})
+      //   },
+      // )
     } else {
       state.socket?.chat.emit(
         'private_chat_history',
@@ -77,14 +77,72 @@ const Chat = () => {
   }, [route.params.friend.friend_id])
 
   const handleGetInputValue = React.useCallback((value: string) => {
+    handleMessage(value, Message_type.TEXT)
+  }, [])
+
+  /* 选择相册内资源 */
+  const getGallery = () => {
+    setModalVisible(false)
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+      },
+      ({assets}) => {
+        if (assets) {
+          messageUpload(
+            assets[0],
+            state.user?.result.user_id!,
+            route.params.friend.friend_id,
+            state.user?.token!,
+          ).then(val => {
+            if (val.code === 1) {
+              handleMessage(val.data, Message_type.IMAGE)
+            } else {
+              myToast('无法发送，你和对方不是双向好友')
+              dispatch({
+                type: ActionTypes.UPDATEFRIEND,
+                payload: state.current_talk?.conversation_id!,
+              })
+            }
+          })
+        }
+      },
+    )
+  }
+
+  /* 启动相机 */
+  const startCamera = () => {
+    launchCamera(
+      {mediaType: 'photo', cameraType: 'back', videoQuality: 'low', durationLimit: 30},
+      ({assets}) => {
+        if (assets) {
+          messageUpload(
+            assets[0],
+            state.user?.result.user_id!,
+            route.params.friend.friend_id,
+            state.user?.token!,
+          ).then(val => {
+            if (val.code === 1) {
+              handleMessage(val.data, Message_type.IMAGE)
+            }
+          })
+        }
+      },
+    )
+    setModalVisible(p => !p)
+  }
+  /* 生成message */
+  const handleMessage = (value: string, type: Message_type) => {
     let newMessage: MessageType
     if (state.current_talk?.isGroup) {
+      /* 群组消息 */
     } else {
+      console.log(state.user)
       newMessage = {
         user_id: state.user?.result.user_id!,
         createdAt: new Date().toISOString(),
         msg: value,
-        msg_type: Message_type.TEXT,
+        msg_type: type,
         to_id: state.current_talk?.conversation_id!,
         user: {
           avatar: state.user?.result.avatar!,
@@ -94,15 +152,30 @@ const Chat = () => {
         status: 0,
       }
       setMessages(p => [...p, newMessage])
+      listRef.current?.scrollToIndex({index: 0, animated: true})
 
-      state.socket?.chat.emit('private_chat', newMessage, (res: any, err: any) => {})
+      state.socket?.chat.emit('private_chat', newMessage, (res: any, err: any) => {
+        if (res === false) {
+          myToast('无法发送，你和对方不是双向好友')
+          dispatch({
+            type: ActionTypes.UPDATEFRIEND,
+            payload: state.current_talk?.conversation_id!,
+          })
+        }
+      })
     }
+  }
+
+  /* modal控制 */
+  const handleModalVisible = React.useCallback(() => {
+    setModalVisible(p => !p)
   }, [])
 
   return (
     <View style={[styles.flex, {backgroundColor: theme.colors.background}]}>
       <View style={[styles.top]}>
         <Pressable
+          onPress={() => navigate.goBack()}
           style={{padding: 6, borderRadius: 50, overflow: 'hidden'}}
           android_ripple={{
             color: theme.colors.clickbg,
@@ -123,9 +196,29 @@ const Chat = () => {
       <View style={[styles.flex]}>
         <View style={[styles.messages_list]}>
           <FlatList
-            data={[...messages].reverse()}
+            ref={listRef}
+            data={route.params.friend.friendship ? [...messages].reverse() : []}
             inverted
-            initialNumToRender={15}
+            keyboardDismissMode="on-drag"
+            initialNumToRender={50}
+            maxToRenderPerBatch={15}
+            contentContainerStyle={
+              route.params.friend.friendship
+                ? []
+                : {
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flex: 1,
+                  }
+            }
+            ListEmptyComponent={
+              <View>
+                <Text style={{color: theme.colors.secondary}}>
+                  {!route.params.friend.friendship &&
+                    '无法聊天，你和对方不是双向好友关系'}
+                </Text>
+              </View>
+            }
             showsVerticalScrollIndicator={false}
             renderItem={({index, item}) => (
               <Message
@@ -135,22 +228,74 @@ const Chat = () => {
                 to_id={item.user_id}
                 user_id={item.to_id}
                 me={item.user_id === state.user?.result.user_id!}
+                msg_type={item.msg_type}
+                imageStrs={messages
+                  .filter(i => i.msg_type === 'image')
+                  .map(i => i.msg)
+                  .reverse()}
               />
             )}
           />
         </View>
       </View>
       <Divider />
-      <View style={[styles.bottom_input]}>
-        <MyInput
-          placeholder="输入消息"
-          hiddenEmoji={false}
-          getInputValue={handleGetInputValue}
-          paddingHorizontal={10}
-          paddingVertical={10}
-          editable={route.params.friend.friendship}
-        />
+      <View style={[styles.bottom_wrapper]}>
+        <View style={[styles.bottom_input]}>
+          <MyInput
+            placeholder="输入消息"
+            hiddenEmoji={false}
+            getInputValue={handleGetInputValue}
+            paddingHorizontal={10}
+            paddingVertical={10}
+            editable={route.params.friend.friendship}
+          />
+        </View>
+        <Pressable
+          onPress={handleModalVisible}
+          style={{marginRight: 10}}>
+          <Icons
+            name="add-circle-outline"
+            size={36}
+            color={theme.colors.secondary}
+          />
+        </Pressable>
       </View>
+      {/* modal */}
+      <MyModal
+        half
+        modalVisible={modalVisible}
+        setModalVisible={handleModalVisible}
+        children={
+          <View style={[styles.options]}>
+            <Pressable
+              onPress={() => getGallery()}
+              style={[styles.option]}
+              android_ripple={{color: theme.colors.clickbg}}>
+              <FAIcons
+                name="file-photo-o"
+                size={30}
+                color={theme.colors.secondary}
+              />
+              <Text style={[styles.option_text, {color: theme.colors.defaultTextColor}]}>
+                从相册里选择
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => startCamera()}
+              style={[styles.option]}
+              android_ripple={{color: theme.colors.clickbg}}>
+              <FAIcons
+                name="camera"
+                size={30}
+                color={theme.colors.secondary}
+              />
+              <Text style={[styles.option_text, {color: theme.colors.defaultTextColor}]}>
+                使用相机拍照片
+              </Text>
+            </Pressable>
+          </View>
+        }
+      />
     </View>
   )
 }
@@ -172,11 +317,27 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   messages_list: {
-    padding: 10,
+    flex: 1,
+    paddingHorizontal: 10,
+  },
+  bottom_wrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   bottom_input: {
-    // padding: 10,
-    // flexDirection: 'row',
-    // alignItems: 'center',
+    flex: 1,
+  },
+  options: {
+    justifyContent: 'center',
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingLeft: 18,
+    paddingVertical: 20,
+  },
+  option_text: {
+    fontSize: 18,
   },
 })

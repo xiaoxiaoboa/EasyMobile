@@ -5,7 +5,7 @@ import getUnionUrl from '../../utils/getUnionUrl'
 
 interface SwiperProps {
   targetIndex: number
-  source: Feed_attachType[]
+  source: string[]
   visible: boolean
   setVisible: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -40,17 +40,12 @@ const Swiper: React.FC<SwiperProps> = props => {
           })}
           renderItem={({index, item, separators}) => (
             <Image
-              source={{uri: getUnionUrl(item.attach_link)}}
+              source={{uri: getUnionUrl(item)}}
               style={{width: windowWidth}}
               resizeMode="contain"
             />
           )}
         />
-        {/* <Image
-          source={{uri: target?.uri}}
-          style={{flex: 1}}
-          resizeMode="contain"
-        /> */}
       </View>
     </Modal>
   )

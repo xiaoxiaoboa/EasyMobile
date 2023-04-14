@@ -23,6 +23,7 @@ export interface Colors {
   inputbg: string
   clickbg: string
   unreadNotice:string
+  listdivder:string
 }
 
 export type Light = Colors

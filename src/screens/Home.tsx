@@ -14,6 +14,7 @@ import getUnionUrl from '../utils/getUnionUrl'
 import {feeds_all} from '../api/feed.api'
 import {ActionTypes} from '../types/reducer'
 import {useNetInfo} from '@react-native-community/netinfo'
+import myToast from '../utils/Toast'
 
 export type imagesType = {id: string; uri: string}
 export const images: imagesType[] = [
@@ -46,6 +47,12 @@ const Home = () => {
   const offsetRef = React.useRef<number>(0)
   const {isInternetReachable} = useNetInfo()
 
+  React.useEffect(() => {
+    limitRef.current = 5
+    offsetRef.current = 0
+    dispatch({type: ActionTypes.RESETHOMEFEEDS, payload: ''})
+  }, [state.user])
+
   /* 获取帖子 */
   const getFeeds = React.useCallback(() => {
     if (isInternetReachable) {
@@ -65,7 +72,7 @@ const Home = () => {
           data={state.homeFeeds}
           initialNumToRender={3}
           maxToRenderPerBatch={3}
-          onEndReachedThreshold={0.3}
+          onEndReachedThreshold={0.5}
           onEndReached={getFeeds}
           ListEmptyComponent={
             <View style={[styles.empty]}>
@@ -98,6 +105,11 @@ const HeaderComponent = React.memo((props: HeaderComponentProps) => {
   const {theme, isInternetReachable} = props
   const {state} = React.useContext(MyContext)
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
+
+  const handlePost = () => {
+    if (!state.user) return myToast('先登录吧~')
+    navigate.navigate('postting')
+  }
   return (
     <View>
       {!state.user && (
@@ -145,7 +157,7 @@ const HeaderComponent = React.memo((props: HeaderComponentProps) => {
               borderless: false,
               foreground: true,
             }}
-            onPress={() => navigate.navigate('postting')}>
+            onPress={handlePost}>
             <Text style={{color: theme.secondary}}>分享好瞬间~</Text>
           </Pressable>
         </View>

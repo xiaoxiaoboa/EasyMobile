@@ -28,6 +28,7 @@ type ProfileParams = {
 
 type CheckNoticeParams = {
   feed_id: string
+  notice_id: string
   newComment?: {
     comment?: string
     source_avatar?: string

@@ -40,8 +40,8 @@ const FeedCard = React.memo((props: FeedCardProps) => {
   const navigate = useNavigation<NavigationProp<RootStackParamList>>()
 
   /* 控制菜单modal */
-  const handleMenuModalVisible = React.useCallback((visible: boolean) => {
-    setMenuModalVisible(visible)
+  const handleMenuModalVisible = React.useCallback(() => {
+    setMenuModalVisible(p => !p)
   }, [])
 
   /* 点赞 */
@@ -130,7 +130,7 @@ const FeedCard = React.memo((props: FeedCardProps) => {
           {state.user && state.user.result.user_id === feed.feed_userID && (
             <Pressable
               hitSlop={10}
-              onPress={() => handleMenuModalVisible(true)}
+              onPress={handleMenuModalVisible}
               style={{
                 marginLeft: 'auto',
                 padding: 4,
@@ -152,11 +152,13 @@ const FeedCard = React.memo((props: FeedCardProps) => {
         </View>
         {/* 中部 */}
         <View>
-          <View style={{paddingHorizontal: 10}}>
-            <Text style={{fontSize: 18, color: theme.colors.defaultTextColor}}>
-              {feed.feed_text}
-            </Text>
-          </View>
+          {feed.feed_text.length > 0 && (
+            <View style={{paddingHorizontal: 10, marginBottom: 10}}>
+              <Text style={{fontSize: 18, color: theme.colors.defaultTextColor}}>
+                {feed.feed_text}
+              </Text>
+            </View>
+          )}
           <View style={[styles.middle, {backgroundColor: theme.colors.divider}]}>
             <Attaches attaches={feed.feed_attaches} />
           </View>

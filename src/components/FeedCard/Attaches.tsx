@@ -15,6 +15,12 @@ const Attaches: React.FC<AttachesProps> = props => {
   const width = React.useMemo(() => Dimensions.get('window').width, [])
   const height = React.useRef(360).current
   const [singleHeight, setSingleHeight] = React.useState<number>(0)
+  const imageStrsRef = React.useRef<string[]>([])
+
+  React.useEffect(() => {
+    const strs = attaches.filter(i => i.attach_type === 'image').map(i => i.attach_link)
+    imageStrsRef.current = strs
+  }, [])
 
   /* 当只有一张照片时，控制其高度 */
   React.useEffect(() => {
@@ -97,7 +103,7 @@ const Attaches: React.FC<AttachesProps> = props => {
         }
       })}
       <Swiper
-        source={attaches}
+        source={imageStrsRef.current}
         targetIndex={targetIndexRef.current}
         visible={swiperVisible}
         setVisible={setSwiperVisible}

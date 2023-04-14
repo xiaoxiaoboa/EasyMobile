@@ -4,10 +4,43 @@ import {MyContext} from '../context/context'
 import {ActionTypes} from '../types/reducer'
 import {FriendType} from '../types/friend.type'
 import {ChatGroupType, ConversationType, MessageType} from '../types/chat.type'
+import {queryMessageNotice} from '../api/user.api'
 
 const useSocketListener = () => {
   const {state, dispatch} = React.useContext(MyContext)
   const conversationsCache = React.useRef<ConversationType[]>([])
+  const friendsCache = React.useRef<FriendType[]>([])
+  const groupsCache = React.useRef<ChatGroupType[]>([])
+
+  /* 未读聊天消息 */
+  React.useEffect(() => {
+    queryMessageNotice(state.user?.result.user_id!, '1', state.user?.token!).then(val => {
+      if (val.code === 1) {
+        if (val.data.length === 0) {
+          dispatch({type: ActionTypes.UPDATEALLCONVERSATIONS, payload: ''})
+        } else {
+          const newFriendsSet = new Set(friendsCache.current.map(i => i.friend_id))
+          const newUnReadMessages = val.data.filter(i =>
+            newFriendsSet.has(i.source.user_id),
+          )
+          dispatch({type: ActionTypes.UNREADMESSAGES, payload: newUnReadMessages})
+
+          const newConversations = newUnReadMessages.map(i => ({
+            conversation_id: i.source.user_id,
+            avatar: i.source.avatar,
+            name: i.source.nick_name,
+            user_name: i.source.nick_name,
+            msg: i.message.msg,
+            msg_type: i.message.msg_type,
+            isGroup: false,
+            msg_length: i.total,
+            msg_createdAt: i.message.createdAt,
+          }))
+          dispatch({type: ActionTypes.CONVERSATIONS, payload: newConversations})
+        }
+      }
+    })
+  }, [state.user])
 
   React.useEffect(() => {
     /* 点赞评论帖子 */
@@ -42,26 +75,18 @@ const useSocketListener = () => {
       })
     })
 
-    // /* 私聊 */
-    // state.socket?.chat.on('private_message', (data: MessageType, callback) => {
-    //   const findeItem = state.conversations.find(
-    //     i => i.conversation_id === data.conversation_id,
-    //   )
-    //   /* 在不在Conversation中 */
-    //   if (findeItem) {
-    //     inConversations(findeItem, data, callback)
-    //   } else {
-    //     // noConversations(data)
-    //   }
-    // })
-
     /* 监听未处理信息 */
     state.socket?.notice.on(`new_notice_message`, (data: UnReadMessageType) => {
       if (data.message.user_id === state.user?.result.user_id!) return
+      /* friend是否存在 */
+      const friendExist = friendsCache.current.find(
+        i => i.friend_id === data.source.user_id,
+      )
+      if (!friendExist) return
+      /* 是不是群组 */
+      // const group = state.groups.find(i => i.group_id === data.source.user_id)
       dispatch({type: ActionTypes.ADDUNREADMESSAGE, payload: data})
 
-      /* 是不是群组 */
-      const group = state.groups.find(i => i.group_id === data.message.conversation_id)
       /* 在不在Conversation中 */
       const findeItem = conversationsCache.current.find(
         i => i.conversation_id === data.message.conversation_id,
@@ -69,7 +94,7 @@ const useSocketListener = () => {
       if (findeItem) {
         inConversations(findeItem, data)
       } else {
-        notInConversations(data, group)
+        notInConversations(data)
       }
     })
     return () => {
@@ -84,14 +109,14 @@ const useSocketListener = () => {
   const inConversations = (findeItem: ConversationType, data: UnReadMessageType) => {
     const inCurrentTalk =
       state.current_talk?.conversation_id === data.message.conversation_id
-
     if (!inCurrentTalk) {
+      console.log(data)
       const newConversation: ConversationType = {
         ...findeItem,
         msg: data.message.msg,
         msg_type: data.message.msg_type,
         user_name: data.source.nick_name,
-        msg_length: inCurrentTalk ? 0 : findeItem.msg_length + 1,
+        msg_length: inCurrentTalk ? 0 : findeItem.msg_length + data.total,
         msg_createdAt: data.createdAt,
       }
 
@@ -100,15 +125,15 @@ const useSocketListener = () => {
     }
   }
 
-  const notInConversations = (data: UnReadMessageType, group?: ChatGroupType) => {
+  const notInConversations = (data: UnReadMessageType) => {
     const newData: ConversationType = {
-      conversation_id: data.message.conversation_id,
-      avatar: group ? group.group_avatar : data.source.avatar,
-      name: group ? group.group_name : data.source.nick_name,
+      conversation_id: data.source.user_id,
+      avatar: data.source.avatar,
+      name: data.source.nick_name,
       user_name: data.source.nick_name,
       msg: data.message.msg,
       msg_type: data.message.msg_type,
-      isGroup: group ? true : false,
+      isGroup: false,
       msg_length: 1,
       msg_createdAt: data.message.createdAt,
     }
@@ -119,6 +144,12 @@ const useSocketListener = () => {
   React.useEffect(() => {
     conversationsCache.current = state.conversations
   }, [state.conversations])
+  React.useEffect(() => {
+    friendsCache.current = state.friends
+  }, [state.friends])
+  React.useEffect(() => {
+    groupsCache.current = state.groups
+  }, [state.groups])
 
   return
 }

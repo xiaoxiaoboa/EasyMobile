@@ -171,7 +171,13 @@ const Header = React.memo((props: HeaderProps) => {
         user_name: findFriend?.nick_name!,
         msg_createdAt: '',
       }
-      dispatch({type: ActionTypes.CONVERSATIONS, payload: newConversation})
+      dispatch({type: ActionTypes.CURRENTTALK, payload: newConversation})
+      dispatch({
+        type: ActionTypes.UPDATEUNREADMESSAGE,
+        payload: newConversation.conversation_id,
+      })
+
+      dispatch({type: ActionTypes.NEWCONVERSATION, payload: newConversation})
     }
     navigate.navigate('chat', {friend: findFriend!})
   }
@@ -401,7 +407,7 @@ const Header = React.memo((props: HeaderProps) => {
       <MyModal
         half
         modalVisible={delFriendModalVisible}
-        setModalVisible={setDelFriendModalVisible}
+        setModalVisible={handleDelFriendModal}
         children={
           <View style={[styles.modal_options]}>
             <Pressable
@@ -431,7 +437,7 @@ const Header = React.memo((props: HeaderProps) => {
       <MyModal
         half
         modalVisible={responseRequestModalVisible}
-        setModalVisible={setResponseRequestModalVisible}
+        setModalVisible={handleResponseRequestModal}
         children={
           <View style={[styles.modal_options]}>
             <Pressable

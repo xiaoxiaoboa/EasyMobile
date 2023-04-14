@@ -73,6 +73,7 @@ const Comment = React.memo((props: CommentProps) => {
       </View>
       <Divider />
       <MyInput
+        editable={route.params.user ? true : false}
         placeholder="写评论~"
         hiddenIcon
         hiddenEmoji={false}

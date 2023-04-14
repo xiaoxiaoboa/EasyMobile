@@ -5,7 +5,7 @@ import {ThemeContext} from '../../theme'
 interface HalfModalProps {
   modalVisible: boolean
   children: React.ReactNode
-  setModalVisible: (visible: boolean) => void
+  setModalVisible: () => void
   half?: boolean
 }
 const HalfModal = (props: HalfModalProps) => {
@@ -27,12 +27,12 @@ const HalfModal = (props: HalfModalProps) => {
         transparent={true}
         visible={modalVisible}
         style={{flex: 1}}
-        onRequestClose={() => setModalVisible(false)}>
+        onRequestClose={setModalVisible}>
         {/* 占位 */}
         {half && (
           <Pressable
             style={{flex: 1}}
-            onPress={() => setModalVisible(false)}
+            onPress={setModalVisible}
           />
         )}
 

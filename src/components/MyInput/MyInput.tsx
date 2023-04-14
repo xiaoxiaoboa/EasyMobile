@@ -1,10 +1,9 @@
 import React from 'react'
-import {StyleSheet, View, TextInput, Pressable} from 'react-native'
-import FIcons from 'react-native-vector-icons/FontAwesome'
+import {StyleSheet, View, TextInput, Pressable, Text} from 'react-native'
 import {ThemeContext} from '../../theme'
 import EmojiPicker, {EmojiKeyboard} from 'rn-emoji-keyboard'
 import SLIcons from 'react-native-vector-icons/SimpleLineIcons'
-import {Colors} from '../../theme/theme-types'
+import FIcons from 'react-native-vector-icons/Feather'
 
 interface MyInputProps {
   placeholder: string
@@ -34,6 +33,7 @@ const MyInput = React.memo((props: MyInputProps) => {
     setInputValue(p => p + emoji)
   }
   const handleOpenEmoji = React.useCallback(() => {
+    console.log(editable)
     editable && setOpenEmoji(p => !p)
   }, [])
   const handleEndEditing = (text: string) => {
@@ -41,8 +41,9 @@ const MyInput = React.memo((props: MyInputProps) => {
     setInputValue('')
   }
 
+
   return (
-    <View style={[]}>
+    <View>
       <View style={[styles.container, {paddingHorizontal, paddingVertical}]}>
         <View style={[styles.input_wrapper, {backgroundColor: theme.colors.inputbg}]}>
           {/* icon */}
@@ -71,7 +72,7 @@ const MyInput = React.memo((props: MyInputProps) => {
         {/* emoji */}
         {!hiddenEmoji && (
           <Pressable
-            style={{marginLeft: 6}}
+            style={{marginLeft: 10}}
             onPress={handleOpenEmoji}>
             <SLIcons
               name="emotsmile"
@@ -107,44 +108,6 @@ const MyInput = React.memo((props: MyInputProps) => {
   )
 })
 
-interface EmojiProps {
-  theme: Colors
-  openEmoji: boolean
-  handleOpenEmoji: () => void
-  getEmoji: (emoji: string) => void
-  handleKeyboard: () => void
-}
-const Emoji = React.memo((props: EmojiProps) => {
-  const {theme, openEmoji, handleOpenEmoji, getEmoji, handleKeyboard} = props
-
-  return (
-    <View style={{paddingHorizontal: 10}}>
-      <Pressable onPress={handleOpenEmoji}>
-        <SLIcons
-          name="emotsmile"
-          size={30}
-          color={theme.secondary}
-        />
-      </Pressable>
-
-      {/* <EmojiPicker
-        open={openEmoji}
-        onRequestClose={handleOpenEmoji}
-        onClose={handleOpenEmoji}
-        onEmojiSelected={({emoji}) => getEmoji(emoji)}
-        disabledCategories={[
-          'animals_nature',
-          'flags',
-          'food_drink',
-          'objects',
-          'search',
-          'symbols',
-          'travel_places',
-        ]}
-      /> */}
-    </View>
-  )
-})
 export default MyInput
 
 const styles = StyleSheet.create({

@@ -6,14 +6,12 @@ import {io} from 'socket.io-client'
 import {getFriends, queryMessageNotice, queryNotice} from '../api/user.api'
 import findNoFriend from '../utils/findNoFriend'
 import NetInfo from '@react-native-community/netinfo'
-import {feeds_all} from '../api/feed.api'
 
-const inintSocket = () =>
-  getLocalData('user') && {
-    chat: io('ws://192.168.1.104:8000/chat', {autoConnect: true}),
-    group: io('ws://192.168.1.104:8000/group_chat'),
-    notice: io('ws://192.168.1.104:8000'),
-  }
+const inintSocket = () => ({
+  chat: io('ws://192.168.1.104:8000/chat'),
+  group: io('ws://192.168.1.104:8000/group_chat'),
+  notice: io('ws://192.168.1.104:8000'),
+})
 
 const initialValue: ReducerState = {
   user: getLocalData('user'),
@@ -54,12 +52,6 @@ export const MyContextProvider = ({children}: MyContextProviderProps) => {
         dispatch({type: ActionTypes.FRIENDS, payload: newFriendList})
       }
     })
-    /* 未读聊天消息 */
-    queryMessageNotice(state.user.result.user_id!, '1', state.user.token!).then(val => {
-      if (val.code === 1) {
-        dispatch({type: ActionTypes.UNREADMESSAGES, payload: val.data})
-      }
-    })
   }, [state.user])
 
   /* 监听网络变化 */
@@ -78,7 +70,7 @@ export const MyContextProvider = ({children}: MyContextProviderProps) => {
 
   /* 根据网络变化改变数据 */
   React.useMemo(() => {
-    if (isConnected) {
+    if (isConnected && state.user) {
       /* 有网络就连接socket */
       state.socket?.chat.connect()
       state.socket?.group.connect()
@@ -92,7 +84,7 @@ export const MyContextProvider = ({children}: MyContextProviderProps) => {
       state.socket?.group.disconnect()
       state.socket?.notice.disconnect()
     }
-  }, [isConnected])
+  }, [isConnected, state.user])
 
   /* socket连接后 */
   React.useEffect(() => {

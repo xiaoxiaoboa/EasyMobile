@@ -15,6 +15,7 @@ import {Notice_type, OtherNoticeType} from '../types/notice.type'
 import getUnionUrl from '../utils/getUnionUrl'
 import getTimeDiff from '../utils/getTimeDiff'
 import myToast from '../utils/Toast'
+import Divider from '../components/Divider/Divider'
 
 const Notice = () => {
   const {theme} = React.useContext(ThemeContext)
@@ -50,6 +51,11 @@ const Notice = () => {
           showsVerticalScrollIndicator={false}
           initialNumToRender={10}
           keyExtractor={({notice_id}) => notice_id}
+          ItemSeparatorComponent={() => (
+            <View style={{paddingLeft: 80}}>
+              <View style={{height: 1, backgroundColor: theme.colors.listdivder}} />
+            </View>
+          )}
           renderItem={({item}) => (
             <RenderItem
               notice={item}
@@ -77,6 +83,7 @@ const RenderItem = React.memo((props: RenderItemProps) => {
   const handleModalVisible = React.useCallback(() => {
     setModalVisible(p => !p)
   }, [])
+
   const handleCheck = () => {
     let newComment = undefined
     switch (notice.type) {
@@ -106,9 +113,14 @@ const RenderItem = React.memo((props: RenderItemProps) => {
         navigation.navigate('checkNotice', {
           feed_id: notice.feed_id!,
           newComment,
+          notice_id: notice.notice_id,
         })
         break
       case Notice_type.FEEDLIKE:
+        navigation.navigate('checkNotice', {
+          feed_id: notice.feed_id!,
+          notice_id: notice.notice_id,
+        })
         break
       default:
         break
