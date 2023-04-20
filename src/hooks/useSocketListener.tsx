@@ -76,7 +76,7 @@ const useSocketListener = () => {
     })
 
     /* 监听未处理信息 */
-    state.socket?.notice.on(`new_notice_message`, (data: UnReadMessageType) => {
+    state.socket?.notice.on(`new_notice_message`, (data: UnReadMessageType,callback) => {
       if (data.message.user_id === state.user?.result.user_id!) return
       /* friend是否存在 */
       const friendExist = friendsCache.current.find(
@@ -92,7 +92,7 @@ const useSocketListener = () => {
         i => i.conversation_id === data.message.conversation_id,
       )
       if (findeItem) {
-        inConversations(findeItem, data)
+        inConversations(findeItem, data,callback)
       } else {
         notInConversations(data)
       }
@@ -106,11 +106,10 @@ const useSocketListener = () => {
     }
   }, [])
 
-  const inConversations = (findeItem: ConversationType, data: UnReadMessageType) => {
+  const inConversations = (findeItem: ConversationType, data: UnReadMessageType,callback:any) => {
     const inCurrentTalk =
       state.current_talk?.conversation_id === data.message.conversation_id
     if (!inCurrentTalk) {
-      console.log(data)
       const newConversation: ConversationType = {
         ...findeItem,
         msg: data.message.msg,
@@ -122,6 +121,8 @@ const useSocketListener = () => {
 
       /* 对话置顶 */
       dispatch({type: ActionTypes.CONVERSATIONTOTOP, payload: newConversation})
+    }else {
+      callback('nosave')
     }
   }
 

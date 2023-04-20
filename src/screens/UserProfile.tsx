@@ -93,7 +93,7 @@ const UserProfile = () => {
       <FlatList
         data={feeds}
         initialNumToRender={3}
-        maxToRenderPerBatch={3}
+        maxToRenderPerBatch={10}
         onEndReachedThreshold={0.3}
         onEndReached={getMyFeeds}
         keyExtractor={({feed_id}) => feed_id}

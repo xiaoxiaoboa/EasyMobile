@@ -65,7 +65,7 @@ const MyProfile = () => {
         extraData={isInternetReachable}
         data={state.profileFeeds}
         initialNumToRender={3}
-        maxToRenderPerBatch={3}
+        maxToRenderPerBatch={10}
         onEndReachedThreshold={0.5}
         onEndReached={getMyFeeds}
         keyExtractor={({feed_id}) => feed_id}

@@ -1,7 +1,7 @@
-import {base_url} from '../utils/request'
+import {BASE_URL} from '@env'
 
 const getUnionUrl = (str: string | undefined) => {
-  return str ? base_url + str : str
+  return str ? BASE_URL + str : str
 }
 
 export default getUnionUrl

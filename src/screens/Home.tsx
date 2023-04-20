@@ -43,12 +43,12 @@ export const images: imagesType[] = [
 const Home = () => {
   const {theme} = React.useContext(ThemeContext)
   const {state, dispatch} = React.useContext(MyContext)
-  const limitRef = React.useRef<number>(5)
+  const limitRef = React.useRef<number>(50)
   const offsetRef = React.useRef<number>(0)
   const {isInternetReachable} = useNetInfo()
 
   React.useEffect(() => {
-    limitRef.current = 5
+    limitRef.current = 50
     offsetRef.current = 0
     dispatch({type: ActionTypes.RESETHOMEFEEDS, payload: ''})
   }, [state.user])
@@ -71,8 +71,8 @@ const Home = () => {
         <FlatList
           data={state.homeFeeds}
           initialNumToRender={3}
-          maxToRenderPerBatch={3}
-          onEndReachedThreshold={0.5}
+          maxToRenderPerBatch={20}
+          onEndReachedThreshold={0.3}
           onEndReached={getFeeds}
           ListEmptyComponent={
             <View style={[styles.empty]}>
@@ -90,7 +90,7 @@ const Home = () => {
             />
           )}
           showsVerticalScrollIndicator={false}
-          renderItem={({item, index}) => <FeedCard feed={item} />}
+          renderItem={({item}) => <FeedCard feed={item} />}
           keyExtractor={({feed_id}) => feed_id}
         />
       </View>

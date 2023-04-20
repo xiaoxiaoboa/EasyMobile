@@ -57,8 +57,8 @@ const Postting = React.memo((props: PosttingProps) => {
     setModalVisible(p => !p)
   }
 
-  const handleModalVisible = React.useCallback((visible: boolean) => {
-    setModalVisible(visible)
+  const handleModalVisible = React.useCallback(() => {
+    setModalVisible(p => !p)
   }, [])
 
   const getEmoji = (emoji: string) => {
@@ -72,7 +72,6 @@ const Postting = React.memo((props: PosttingProps) => {
       {feed_userID: state.user?.result.user_id!, feed_text: input},
       state.user?.token!,
     ).then(val => {
-      console.log(val)
       if (val.code === 1) {
         val.data.createdAt = new Date(val.data.createdAt)
           .toLocaleString()

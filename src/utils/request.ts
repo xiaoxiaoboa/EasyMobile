@@ -1,4 +1,5 @@
-export const base_url = 'http://192.168.1.104:8000'
+import { BASE_URL } from "@env";
+
 
 interface RequestType<T> {
   url: string
@@ -11,7 +12,7 @@ const request = async <T>(props: RequestType<T>) => {
   const {url, methods, body, token = ''} = props
 
   try {
-    const res = await fetch(base_url + url, {
+    const res = await fetch(BASE_URL + url, {
       method: methods,
       body: JSON.stringify(body),
       headers: {
@@ -31,7 +32,7 @@ export const uploadRequest = async (params: RequestType<FormData>) => {
   const {url, methods, body, token = ''} = params
 
   try {
-    const res = await fetch(base_url + url, {
+    const res = await fetch(BASE_URL + url, {
       method: methods,
       body: body,
       headers: {
