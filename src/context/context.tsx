@@ -7,6 +7,7 @@ import {getFriends, queryNotice} from '../api/user.api'
 import findNoFriend from '../utils/findNoFriend'
 import NetInfo from '@react-native-community/netinfo'
 import { SOCKET_CHAT,SOCKET_GROUP,SOCKET_NOTICE } from "@env";
+
 const inintSocket = () => ({
   chat: io(SOCKET_CHAT),
   group: io(SOCKET_GROUP),

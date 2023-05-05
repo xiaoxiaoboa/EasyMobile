@@ -39,7 +39,6 @@ const Message = React.memo((props: MessageProps) => {
   const handleSwiper = () => {
     if (msg_type !== 'image') return
     const index = imageStrs?.findIndex(i => i === text)
-    console.log(imageStrs)
     if (index !== undefined) {
       targetIndexRef.current = index
       handleSwiperVisible()

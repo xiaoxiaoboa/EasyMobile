@@ -34,7 +34,7 @@ const Chat = () => {
 
   /* 消息已读 */
   React.useEffect(() => {
-    updateNotice({source_id: route.params.friend.friend_id}, state.user?.token!)
+    updateNotice({source_id: route.params?.friend?.friend_id}, state.user?.token!)
 
     return () => {
       dispatch({type: ActionTypes.CURRENTTALK, payload: undefined})
@@ -66,7 +66,7 @@ const Chat = () => {
       state.socket?.chat.emit(
         'private_chat_history',
         state.user?.result.user_id,
-        route.params.friend.friend_id,
+        route.params?.friend?.friend_id,
         (data: MessageType[]) => {
           setMessages(data)
         },
@@ -74,7 +74,7 @@ const Chat = () => {
     }
 
     return () => {}
-  }, [route.params.friend.friend_id])
+  }, [route.params?.friend?.friend_id])
 
   const handleGetInputValue = React.useCallback((value: string) => {
     handleMessage(value, Message_type.TEXT)
@@ -189,7 +189,7 @@ const Chat = () => {
           />
         </Pressable>
         <Text style={[styles.topText, {color: theme.colors.defaultTextColor}]}>
-          {route.params.friend.nick_name}
+          {route.params?.friend?.nick_name}
         </Text>
       </View>
       <Divider />
@@ -197,13 +197,13 @@ const Chat = () => {
         <View style={[styles.messages_list]}>
           <FlatList
             ref={listRef}
-            data={route.params.friend.friendship ? [...messages].reverse() : []}
+            data={route.params?.friend?.friendship ? [...messages].reverse() : []}
             inverted
             keyboardDismissMode="on-drag"
             initialNumToRender={50}
             maxToRenderPerBatch={15}
             contentContainerStyle={
-              route.params.friend.friendship
+              route.params?.friend?.friendship
                 ? []
                 : {
                     alignItems: 'center',
@@ -214,7 +214,7 @@ const Chat = () => {
             ListEmptyComponent={
               <View>
                 <Text style={{color: theme.colors.secondary}}>
-                  {!route.params.friend.friendship &&
+                  {!route.params?.friend?.friendship &&
                     '无法聊天，你和对方不是双向好友关系'}
                 </Text>
               </View>
@@ -247,7 +247,7 @@ const Chat = () => {
             getInputValue={handleGetInputValue}
             paddingHorizontal={10}
             paddingVertical={10}
-            editable={route.params.friend.friendship}
+            editable={route.params?.friend?.friendship}
           />
         </View>
         <Pressable
