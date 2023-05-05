@@ -222,6 +222,7 @@ const Chat = () => {
             showsVerticalScrollIndicator={false}
             renderItem={({index, item}) => (
               <Message
+                key={item.ch_id}
                 avatar={item.user.avatar}
                 text={item.msg}
                 timestamp={item.createdAt}

@@ -41,6 +41,7 @@ const Conversation = () => {
           )}
           renderItem={({item}) => (
             <RenderItem
+              key={item.conversation_id}
               theme={theme.colors}
               navigation={navigate}
               conversation={item}

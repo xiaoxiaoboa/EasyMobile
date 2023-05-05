@@ -60,6 +60,7 @@ const Comment = React.memo((props: CommentProps) => {
           initialNumToRender={15}
           renderItem={({item}) => (
             <Message
+              key={item.comment_id}
               avatar={item.avatar}
               text={item.comment}
               timestamp={item.createdAt}

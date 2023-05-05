@@ -58,6 +58,7 @@ const Notice = () => {
           )}
           renderItem={({item}) => (
             <RenderItem
+              key={item.notice_id}
               notice={item}
               theme={theme.colors}
               navigation={navigate}

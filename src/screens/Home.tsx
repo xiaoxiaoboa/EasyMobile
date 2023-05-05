@@ -90,7 +90,12 @@ const Home = () => {
             />
           )}
           showsVerticalScrollIndicator={false}
-          renderItem={({item}) => <FeedCard feed={item} />}
+          renderItem={({item}) => (
+            <FeedCard
+              key={item.feed_id}
+              feed={item}
+            />
+          )}
           keyExtractor={({feed_id}) => feed_id}
         />
       </View>

@@ -101,7 +101,7 @@ const FeedCard = React.memo((props: FeedCardProps) => {
   }
 
   return (
-    <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
+    <View  style={[styles.container, {backgroundColor: theme.colors.background}]}>
       <View style={[styles.wrapper]}>
         {/* 顶部 */}
         <View style={[styles.top]}>

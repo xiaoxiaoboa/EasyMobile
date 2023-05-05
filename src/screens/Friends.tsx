@@ -90,6 +90,7 @@ const Friends = () => {
         )}
         renderItem={({item}) => (
           <RenderItem
+            key={item.friend_id}
             friend={item}
             theme={theme.colors}
           />

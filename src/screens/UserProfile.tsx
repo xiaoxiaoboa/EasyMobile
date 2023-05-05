@@ -111,7 +111,7 @@ const UserProfile = () => {
           />
         }
         showsVerticalScrollIndicator={false}
-        renderItem={({item}) => <FeedCard feed={item} />}
+        renderItem={({item}) => <FeedCard key={item.feed_id} feed={item} />}
       />
     </View>
   )
